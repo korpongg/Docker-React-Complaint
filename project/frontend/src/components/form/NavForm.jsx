@@ -16,7 +16,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import FirstPageIcon from '@mui/icons-material/FirstPage';
 import LastPageIcon from '@mui/icons-material/LastPage';
 
-const NavForm = ({Mode,Data,Access,submitfunction,handleSubmitEdit,Stage,MaxStage,FirstStage,LastStage,PrevStage,NextStage,ToStage}) => {
+const NavForm = ({Mode,Data,Access,submitfunction,handleSubmitEdit,Stage,MaxStage,text,FirstStage,LastStage,PrevStage,NextStage,ToStage}) => {
   const NavPage = [];
   for (let i = 0; i < MaxStage; i++) {
     NavPage.push(
@@ -28,7 +28,16 @@ const NavForm = ({Mode,Data,Access,submitfunction,handleSubmitEdit,Stage,MaxStag
   return (
   <>
   {/* {console.log(Access)} */}
-    <Box className="FormFooter" >
+   <Box className="action-bar"   style={{
+       background: "#ffffff",
+    borderBottom: "6px solid #14532d",   // เส้นบนแทน
+    borderRadius: "10px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    position: "relative",
+    minHeight: "72px",
+    display: "flex",
+    alignItems: "center",
+          }}>
     {/* <span>
       {Stage>1 ?
       <>
@@ -53,20 +62,21 @@ const NavForm = ({Mode,Data,Access,submitfunction,handleSubmitEdit,Stage,MaxStag
     </span> */}
     {Stage===MaxStage ? 
     Mode!=="Show" &&(
-      Access && (
 
         (Mode==="Add" ?
           <>
-          <ConfirmDialog submitfunction={submitfunction} SubmitMode="Draft" Access={Access} Mode={Mode} Lable="บันทึกแบบร่าง"/> 
+          <ConfirmDialog submitfunction={submitfunction} SubmitMode="Draft" Access={Access} Mode={Mode} Lable={text} /> 
         {/* <ConfirmDialog submitfunction={submitfunction} SubmitMode="Submit" Access={Access} Mode={Mode} Lable="บันทึก"/>  */}
           </>
         :
         <>
-        {Data?.formstatus==="0" && <ConfirmDialog submitfunction={handleSubmitEdit} Access={Access} Mode={Mode} SubmitMode="Draft" Lable="บันทึกแบบร่าง"/>}
-        <ConfirmDialog submitfunction={handleSubmitEdit} Access={Access} Mode={Mode} SubmitMode="Submit" Lable="บันทึก"/>
+        <ConfirmDialog submitfunction={handleSubmitEdit} Access={Access} Mode={Mode} SubmitMode="Draft" Lable="แก้ไข"/>
+      
         </>
       
-      ))
+      )
+    
+    
       )
         : "Page "+Stage+" of "+MaxStage}
     {/* <span>

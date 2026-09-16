@@ -24,7 +24,7 @@ export const EventBox = styled(Box)`
   }
 
   .MuiDataGrid-toolbarContainer .MuiButton-root {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     font-size: 16px;
   }
 
@@ -52,7 +52,7 @@ export const EventBox = styled(Box)`
   .MuiDataGrid-cell,
   .MuiTablePagination-selectLabel,
   .MuiTablePagination-displayedRows {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     outline: unset !important;
   }
 
@@ -123,7 +123,7 @@ export const TranferDialogBox = styled(Dialog)`
   font-size: 16px;
 
   #tranfer-dialog-title, label, pre, .MuiDataGrid-toolbarContainer .MuiButton-root, button, textarea, .MuiTypography-root, .MuiSelect-select {
-    font-family: 'Prompt', sans-serif !important;
+    font-family: "Mali", sans-serif !important;
   }
 
   pre {
@@ -142,7 +142,7 @@ export const TranferDialogBox = styled(Dialog)`
 
   .validate {
     color: red;
-    font-family: 'Prompt', sans-serif;
+      font-family: "Mali", sans-serif;
     font-size: 14px;
   }
 
@@ -151,7 +151,7 @@ export const TranferDialogBox = styled(Dialog)`
   .MuiDataGrid-cell,
   .MuiTablePagination-selectLabel,
   .MuiTablePagination-displayedRows {
-    font-family: 'Prompt', sans-serif;
+      font-family: "Mali", sans-serif;
     outline: unset !important;
   }
   .EventBox{

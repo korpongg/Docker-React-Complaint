@@ -12,7 +12,7 @@ const handleLogin = async (req, res) => {
 
     try {
         // Find user by username using Sequelize
-        //console.log('handleLogin called1:', User);
+      
         const foundUser = await User.findOne({ 
             where: { 
                 userid: userid,

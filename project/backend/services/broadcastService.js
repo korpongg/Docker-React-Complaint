@@ -1,46 +1,69 @@
-const { broadcastMessage } = require("./websocketManager");
-const { executeSQLQuery, executeSQLQueryMedication, executeSQLQueryEvent } = require("../controllers/broadcastController");
+const { clients } = require("./websocketManager");
 
-// Variable to indicate whether broadcasting is in progress
-global.isExecuting = false;
+const {
+  getCenter1,
+  getCenter2,
+  getCenter3,
+  getCenter4,
+} = require("../controllers/broadcastController");
+
 
 async function executeAndStoreQueryResult() {
-  try {
-    global.resetInterval();
 
-    // Check if another execution is in progress
-    if (global.isExecuting) {
-      console.log("Another Broadcast is in progress. Skipping this execution.");
-      return;
+  try {
+
+    console.log("CLIENT COUNT", Object.keys(clients).length);
+
+
+    for (const client of Object.values(clients)) {
+
+
+      const requests = [
+        {
+          type:"DATA1",
+          fn:getCenter1
+        },
+        {
+          type:"DATA2",
+          fn:getCenter2
+        },
+        {
+          type:"DATA3",
+          fn:getCenter3
+        },
+        {
+          type:"DATA4",
+          fn:getCenter4
+        }
+      ];
+
+
+      for(const item of requests){
+
+        const data = await item.fn(
+          client.currentFilters?.[item.type] || {}
+        );
+
+
+        client.send(JSON.stringify({
+          type:"CENTER_DATA",
+          requestType:item.type,
+          data:data
+        }));
+
+      }
+
+
     }
 
-    // Set isExecuting to true to indicate that execution is in progress
-    global.isExecuting = true;
 
-    const [queryReport, queryMedic, queryEvent] = await Promise.all([
-      executeSQLQuery(),
-      executeSQLQueryMedication(),
-      executeSQLQueryEvent(),
-    ]);
-
-    const dataWithHeader = {
-      report_data: queryReport,
-      medic_data: queryMedic,
-      event_data: queryEvent,
-    };
-
-    // Store the query result data
-    queryResultData = JSON.stringify(dataWithHeader);
-
-    broadcastMessage(queryResultData);
-  } catch (error) {
-    console.error("Error executing SQL query:", error);
-    // Handle the error gracefully, e.g., log it or send an error message to clients.
-  } finally {
-    // Reset isExecuting to false to allow the next execution
-    global.isExecuting = false;
-    global.resetInterval();
+  } catch(err){
+    console.error(err);
   }
+
 }
 
-module.exports = { executeAndStoreQueryResult };
+
+module.exports={
+ executeAndStoreQueryResult
+};

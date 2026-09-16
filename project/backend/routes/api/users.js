@@ -7,6 +7,9 @@ const verifyRoles = require("../../middleware/verifyRoles");
 // Create a new user
 router.post("/", verifyRoles(ROLES_LIST.Admin), usersController.createUser);
 
+router.route("/faction")
+  .get(verifyRoles(ROLES_LIST.Admin), usersController.getAllUsersFaction)
+
 router.route("/")
   .get(verifyRoles(ROLES_LIST.Admin), usersController.getAllUsers)
   .put(verifyRoles(ROLES_LIST.Admin), usersController.updateUser);

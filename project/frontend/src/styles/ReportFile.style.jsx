@@ -15,7 +15,7 @@ export const ReportFileBox = styled(Box)`
     color: #000;
     cursor: pointer;
     display: flex;
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     font-size: 1.125rem;
     padding: 6px 10px;
   }
@@ -52,7 +52,6 @@ export const ReportFileBox = styled(Box)`
 
   #reportImage.AreaBOX {
     border-radius: unset;
-    margin: 10px 0px 5px 20px;
   }
   #reportImage.AreaBOX .imgViewer {
     margin-bottom: 10px;

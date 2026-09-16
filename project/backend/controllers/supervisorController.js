@@ -56,9 +56,9 @@ exports.getAllSupervisor = async (req, res) => {
         s.userid,
         CONCAT(u.title, ' ', u.name, ' ', u.lastname) AS supName,
         CASE 
-          WHEN s.type = '0' THEN 'Occurrence' 
+          WHEN s.type = '0' THEN 'Complaint' 
           WHEN s.type = '1' THEN 'Medication'
-          WHEN s.type = '2' THEN 'Occurrence & Medication'
+          WHEN s.type = '2' THEN 'Complaint & Medication'
           ELSE 'Unknown'
         END AS typename,
         s.deptrelate,

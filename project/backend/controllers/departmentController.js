@@ -68,6 +68,8 @@ exports.getAllDepartments = async (req, res) => {
 
 // Get a single department by ID with custom SQL
 exports.getDepartmentById = async (req, res) => {
+
+
   const sql = `
     SELECT d.id, d.name AS DepName, a.id AS AffID, a.name AS AffName, d.email
     FROM ${DB_NAME}.[dbo].[department] d

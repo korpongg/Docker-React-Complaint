@@ -137,7 +137,7 @@ export default function ReportView({ Mode, data }) {
                     </div>
                     <div className="ReportViewTable_Row">
                         <span className="ReportViewTable_Topic">วัน-เวลาที่เกิดเหตุการณ์</span>
-                        <span className="ReportViewTable_Content">{getCurrentDateNoT(data?.occurrencedate) || "-"}</span>
+                        <span className="ReportViewTable_Content">{getCurrentDateNoT(data?.complaintdate) || "-"}</span>
                     </div>
                     <div className="ReportViewTable_Row">
                         <span className="ReportViewTable_Topic">หน่วยงานที่เกี่ยวข้อง</span>
@@ -180,11 +180,11 @@ export default function ReportView({ Mode, data }) {
                                 
                 <div className="ReportViewTable">
                     <div className="ReportViewTable_Row">
-                        <span className="ReportViewTable_Topic">ประเภทอุบัติการณ์</span>
+                        <span className="ReportViewTable_Topic">ประเภทข้อร้องเรียน</span>
                         <span className="ReportViewTable_Content">{data?.reporttype && data?.reporttype==="0" ? "General Risk" : "Clinical Risk"|| "-"}</span>
                     </div>
                     <div className="ReportViewTable_Row">
-                        <span className="ReportViewTable_Topic">ระดับความเสี่ยงอุบัติการณ์</span>
+                        <span className="ReportViewTable_Topic">ระดับความเสี่ยงข้อร้องเรียน</span>
                         <span className="ReportViewTable_Content">
                             {/* {data?.level || "-"} */}
                             {data?.level+" "+getTitleFromCode("ClinicalRisk", "A")}

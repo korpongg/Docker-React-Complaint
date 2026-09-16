@@ -25,7 +25,7 @@ export const ReportBox = styled(Box)`
   }
     
   .MuiDataGrid-toolbarContainer .MuiButton-root {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     font-size: 17px;
   }
 
@@ -49,7 +49,7 @@ export const ReportBox = styled(Box)`
   .MuiDataGrid-cell,
   .MuiTablePagination-selectLabel,
   .MuiTablePagination-displayedRows {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     outline: unset !important;
   }
 
@@ -201,7 +201,7 @@ export const InputBox = styled(Box)`
     border-radius: 7px;
     color: #000;
     cursor: pointer;
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     padding: 10px;
     width:150px;
     width:-webkit-fill-available;

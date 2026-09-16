@@ -156,9 +156,9 @@ export default function EditSup({ depData, id, fetch }) {
             <FormControl sx={{ pt: 2 }}>
               <FormLabel>Type</FormLabel>
               <RadioGroup row name="type" value={newData.type} onChange={handleChange}>
-                <FormControlLabel value="0" control={<Radio />} label="Occurrence" />
+                <FormControlLabel value="0" control={<Radio />} label="Complaint" />
                 <FormControlLabel value="1" control={<Radio />} label="Medication" />
-                <FormControlLabel value="2" control={<Radio />} label="Occurrence & Medication" />
+                <FormControlLabel value="2" control={<Radio />} label="Complaint & Medication" />
               </RadioGroup>
             </FormControl>
 

@@ -84,25 +84,62 @@ const findMedDepartmentEmail = async ( reportCode ) => {
   }
 };
 
-const sendEmail = async (to, reportId, subject, text) => {
+const sendEmail = async (to, id, reportId, subject, text) => {
   try {
-    const htmlContent = `${text}<br/><br/><br/>
-      เข้าสู่ระบบรายงานอุบัติการณ์: <a href="https://occurences.thainakarin.co.th/login">Login</a><br/><br/>
-      หากเข้าสู่ระบบแล้ว ดูรายงานอุบัติการณ์: <a href="https://occurences.thainakarin.co.th/occurrence/form/${reportId}">ดูรายงาน</a>`;
+    const htmlContent = `
+      ${text}
+
+      <br/><br/>
+      <hr style="border:0;border-top:1px solid #ddd;"/>
+
+      <b>การเข้าถึงระบบ</b><br/><br/>
+
+      เข้าสู่ระบบข้อร้องเรียน<br/>
+      <a href="http://10.1.1.95:3000/">
+        http://10.1.1.95:3000/
+      </a>
+
+      <br/><br/>
+
+      ดูรายละเอียดข้อร้องเรียน <b>${reportId}</b><br/>
+      <a href="http://10.1.1.95:3000/RiskManagement/formview/${reportId}">
+        เปิดรายงานข้อร้องเรียน
+      </a>
+
+      <br/><br/>
+      <hr style="border:0;border-top:1px solid #ddd;"/>
+
+      หมายเหตุ: อีเมลนี้ถูกส่งจากระบบอัตโนมัติ กรุณาอย่าตอบกลับอีเมลนี้
+    `;
 
     const mailOptions = {
       from: MIS_EMAIL,
-      to,
-      subject,
+      to: to,
+      subject: subject,
       html: htmlContent,
     };
 
-    console.log("Sending email with options:", mailOptions);
+    console.log("========== SEND EMAIL ==========");
+    console.log("FROM:", MIS_EMAIL);
+    console.log("TO:", JSON.stringify(to));
+    console.log("SUBJECT:", subject);
 
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
+
+    console.log("SMTP RESPONSE:", info.response);
+    console.log("MESSAGE ID:", info.messageId);
+    console.log("ENVELOPE:", info.envelope);
+    console.log("================================");
+
+    return info;
+
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("========== EMAIL ERROR ==========");
+    console.error("TO:", JSON.stringify(to));
+    console.error(error);
+    console.error("================================");
+
+    throw error;
   }
 };
 
@@ -128,7 +165,7 @@ const sendExecEmail = async (to, cc, reportId, subject, html) => {
 const sendGenericEmail = async (to, subject, text, link) => {
   try {
     const htmlContent = `${text}<br/><br/><br/>
-      เข้าสู่ระบบรายงานอุบัติการณ์: <a href="https://occurences.thainakarin.co.th/login">Login</a><br/><br/>
+      เข้าสู่ระบบข้อร้องเรียน: <a href="https://occurences.thainakarin.co.th/login">Login</a><br/><br/>
       หากเข้าสู่ระบบแล้ว ${link}`;
 
     const mailOptions = {
@@ -148,13 +185,13 @@ const sendGenericEmail = async (to, subject, text, link) => {
 };
 
 const sendEmailEvent = (to, subject, text) => {
-  const link = `ดูรายงานอุบัติการณ์ที่เกี่ยวข้องกับแผนก: <a href="https://occurences.thainakarin.co.th/occurrence/event">ดูรายงาน</a>`;
+  const link = `ดูข้อร้องเรียนที่เกี่ยวข้องกับแผนก: <a href="https://occurences.thainakarin.co.th/complaint/event">ดูรายงาน</a>`;
   return sendGenericEmail(to, subject, text, link);
 };
 
 const sendEmailEventHA = (to, subject, text) => {
-  const link = `ดูรายงานอุบัติการณ์: <a href="https://occurences.thainakarin.co.th/occurrence">ดูรายงานอุบัติการณ์</a><br/><br/>
-    หรือ ดูรายงานอุบัติการณ์ที่เกี่ยวข้องกับแผนก: <a href="https://occurences.thainakarin.co.th/occurrence/event">ดูรายงาน</a>`;
+  const link = `ดูข้อร้องเรียน: <a href="https://occurences.thainakarin.co.th/complaint">ดูข้อร้องเรียน</a><br/><br/>
+    หรือ ดูข้อร้องเรียนที่เกี่ยวข้องกับแผนก: <a href="https://occurences.thainakarin.co.th/complaint/event">ดูรายงาน</a>`;
   return sendGenericEmail(to, subject, text, link);
 };
 

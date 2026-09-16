@@ -5,14 +5,23 @@ import axios from "axios";
 import MuiAlert from "@mui/material/Alert";
 import useAuth from "../../hooks/useAuth";
 import { LoginBox } from "../../styles/Login.style";
+import Swal from 'sweetalert2';
+import FeedbackIcon from "@mui/icons-material/Feedback";
 
 import { createGlobalStyle } from "styled-components";
 const GlobalStyle = createGlobalStyle`
-  :root {
-    background: linear-gradient(315deg, #c850c0, #4158d0);
-  }
+body.login-page {
+background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1), transparent 40%),
+    linear-gradient(135deg, #0f2027, #134e5e, #0f9b0f);
+  background-attachment: fixed;
+
+}
+ 
   #root {
     text-align: unset;
+    
   }
 `;
 
@@ -30,7 +39,9 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   const storedAuth = JSON.parse(localStorage.getItem("auth"));
-  const userData = storedAuth ? JSON.parse(localStorage.getItem("userData")) : null;
+  const userData = storedAuth
+    ? JSON.parse(localStorage.getItem("userData"))
+    : null;
 
   const handleApiError = (err) => {
     if (!err?.response) {
@@ -69,7 +80,9 @@ const Login = () => {
   const handleUserData = async () => {
     try {
       const storedAuth = JSON.parse(localStorage.getItem("auth"));
-      const config = { headers: { Authorization: `Bearer ${storedAuth.accessToken}` } };
+      const config = {
+        headers: { Authorization: `Bearer ${storedAuth.accessToken}` },
+      };
       const url = `${apiUrl}/users/${userid}`;
       const response2 = await axios.get(url, { ...config });
       if (response2.status === 200 || response2.status === 201) {
@@ -93,13 +106,34 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post( `${apiUrl}/auth`, { userid, pass }, { headers: { "Content-Type": "application/json" } });
+      const response = await axios.post(
+        `${apiUrl}/auth`,
+        { userid, pass },
+        { headers: { "Content-Type": "application/json" } },
+      );
 
       handleAuthSuccess(response);
       await handleUserData();
     } catch (err) {
       if (err.response && err.response.status === 401) {
-        alert("การเข้าถึงที่ไม่ได้รับอนุญาต, กรุณาตรวจสอบข้อมูลของคุณ.");
+        Swal.fire({
+  icon: "error",
+  title: "Unauthorized Access",
+  html: `
+    <p style="font-size:14px">
+      การเข้าถึงถูกปฏิเสธ<br/>
+      กรุณาตรวจสอบสิทธิ์หรือเข้าสู่ระบบใหม่
+    </p>
+  `,
+  confirmButtonText: "ตกลง",
+  confirmButtonColor: "#166534",
+  backdrop: `
+    rgba(0,0,0,0.4)
+  `,
+  customClass: {
+    popup: "swal-radius",
+  },
+});
       } else {
         handleApiError(err);
       }
@@ -118,34 +152,54 @@ const Login = () => {
     setErrMsg("");
   }, [userid, pass]);
 
+  useEffect(() => {
+    document.body.classList.add("login-page");
+
+    return () => {
+      document.body.classList.remove("login-page");
+    };
+  }, []);
+
   return (
     <>
       <LoginBox>
         <GlobalStyle />
-        <form className="login" onSubmit={handleSubmit} autoComplete="off">
-          <h1>ระบบการรายงานเหตุการณ์</h1>
-          <input
-            ref={userRef}
-            type="text"
-            name="userid"
-            id="userid"
-            value={userid}
-            onChange={(e) => setUserid(e.target.value)}
-            placeholder="รหัสพนักงาน"
-            required
-          />
-          <input
-            ref={passRef}
-            type="password"
-            name="password"
-            id="password"
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-            placeholder="รหัสผ่าน"
-            required
-          />
-          <button disabled={loading}>เข้าสู่ระบบ</button>
-        </form>
+        <div className="login-wrapper">
+          <div className="login-card">
+            {" "}
+          
+            <form className="login" onSubmit={handleSubmit} autoComplete="off">
+  <div className="login-header">
+  <div className="icon-wrap">
+      <FeedbackIcon fontSize="large"/>
+  </div>
+  <h1>ระบบการร้องเรียนและข้อเสนอแนะ</h1>
+  <p>Complaint & Suggestion System</p>
+</div>
+              <input
+                ref={userRef}
+                type="text"
+                name="userid"
+                id="userid"
+                value={userid}
+                onChange={(e) => setUserid(e.target.value)}
+                placeholder="รหัสพนักงาน"
+                required
+              />
+              <input
+                ref={passRef}
+                type="password"
+                name="password"
+                id="password"
+                value={pass}
+                onChange={(e) => setPass(e.target.value)}
+                placeholder="รหัสผ่าน"
+                required
+              />
+              <button disabled={loading}>เข้าสู่ระบบ</button>
+            </form>
+          </div>
+        </div>
       </LoginBox>
     </>
   );

@@ -3,6 +3,22 @@ import Box from "@mui/material/Box";
 
 export const LoginBox = styled(Box)`
   text-align: center;
+  background: linear-gradient(135deg, #065f46, #0f766e);
+.swal-radius {
+  border-radius: 20px !important;
+}
+
+.swal-modern {
+  border-radius: 20px !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25) !important;
+  padding: 30px !important;
+}
+
+.swal-title-modern {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: #166534 !important;
+}
 
   .login {
     overflow: hidden;
@@ -17,29 +33,6 @@ export const LoginBox = styled(Box)`
     transition: transform 300ms, box-shadow 300ms;
     box-shadow: 5px 5px 10px 0px rgb(0 184 255 / 30%);
   }
-  .login::before, .login::after {
-    content: "";
-    position: absolute;
-    width: 730px;
-    height: 730px;
-    border-top-left-radius: 40%;
-    border-top-right-radius: 45%;
-    border-bottom-left-radius: 35%;
-    border-bottom-right-radius: 40%;
-    z-index: -1;
-  }
-  .login::before {
-    left: 35%;
-    bottom: -130%;
-    background-color: #40e0d0;
-    animation: wawes 5s infinite linear;
-  }
-  .login::after {
-    left: 15%;
-    bottom: -125%;
-    background-color: #87cede3b;
-    animation: wawes 7s infinite;
-  }
 
   .login h1 {
     color: #5b5b5b;
@@ -50,7 +43,7 @@ export const LoginBox = styled(Box)`
   }
 
   .login > input {
-    font-family: 'DB-Helvethaica-X', 'Kanit', sans-serif;
+   font-family: "Mali", sans-serif !important;
     border-radius: 5px;
     font-size: 20px;
     background: white;
@@ -68,7 +61,7 @@ export const LoginBox = styled(Box)`
   }
 
   .login > button {
-    font-family: 'DB-Helvethaica-X', 'Kanit', sans-serif;
+font-family: "Mali", sans-serif !important;
     cursor: pointer;
     color: #fff;
     font-size: 18px;
@@ -78,13 +71,36 @@ export const LoginBox = styled(Box)`
     padding: 10px 20px;
     margin: 20px 0 0 0;
     border-radius: 5px;
-    background-color: #57b846;
+    background-color: #d66f01ff;
     transition: background-color 300ms;
   }
   .login > button:hover {
-    background-color: #ed143d;
+    background-color: #edb314ff;
   }
+.login button {
+  background: linear-gradient(135deg, #0f9b0f, #1fa2a6);
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+.login button:hover {
+  background: linear-gradient(135deg, #0f3f4a, #0c7c0c);
 
+
+}
+  .login button:hover {
+  filter: brightness(1.1);
+}
+
+.login button {
+  background: linear-gradient(135deg, #134E5E, #0F9B0F);
+  transition: all 0.25s ease;
+}
+
+.login button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
   @media screen and (max-width: 560px) {
     .login {
         width: 80vw;
@@ -100,4 +116,109 @@ export const LoginBox = styled(Box)`
       transform: rotate(360deg);
     }
   }
+
+  .login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #134E5E, #1FA2A6, #0F9B0F);
+}
+
+.login-card {
+  width: 480px;
+  padding: 60px 50px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  box-shadow:
+    0 40px 80px rgba(0, 0, 0, 0.25),
+    0 10px 20px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+  .login-card:hover {
+  transform: translateY(-6px);
+  transition: 0.3s ease;
+}
+.login-card {
+  position: relative;
+}
+
+.login-card::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  background: linear-gradient(135deg, #1fa2a6, #0f9b0f);
+  z-index: -1;
+  border-radius: 24px;
+  filter: blur(20px);
+  opacity: 0.4;
+}
+
+.login h1 {
+ font-size: 25px;
+  font-weight: 700;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 30px;
+  line-height: 1.4;
+color:black;
+background: linear-gradient(
+    90deg,
+    #166534 25%,
+    #0d7935ff 50%,
+    #166534 75%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+}
+.login h1:hover {
+  animation: shine 2s linear;
+}
+.login input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 16px;
+  transition: all 0.25s ease;
+}
+
+.login input:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22,163,74,0.15);
+  outline: none;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-header .icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fef3c7; /* yellow-100 */
+  color: #d97706;      /* yellow-600 */
+  margin-bottom: 12px;
+}
+
+.login-header h1 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937; /* gray-800 */
+}
+
+.login-header p {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #6b7280; /* gray-500 */
+}
 `;

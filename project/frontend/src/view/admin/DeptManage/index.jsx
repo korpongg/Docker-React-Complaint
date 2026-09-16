@@ -9,7 +9,7 @@ import { createGlobalStyle } from "styled-components";
 
 export const GlobalStyle = createGlobalStyle`
   * {
-    font-family: 'Prompt', sans-serif !important;
+    font-family: "Mali", sans-serif !important;
   }
     
   ::-webkit-scrollbar {
@@ -47,6 +47,7 @@ const DeptManagement = () => {
         try {
             const url = `${apiUrl}/affiliations`;
             const response = await axios.get(url);
+            console.log(response.data)
             if (response.status === 200 || response.status === 201) {
                 setAffData(response.data);
             }

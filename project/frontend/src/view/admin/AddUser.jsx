@@ -62,7 +62,7 @@ const AddUser = () => {
         let isValid = true;
 
         if (!userId || userId.length < 6 || userId.length > 10) {
-            console.log(userId);
+           // console.log(userId);
             setResponse({ success: false, message: 'รหัสพนักงานต้องมีความยาวระหว่าง 6-10 ตัวอักษร' });
             isValid = false;
             setLoading(false);
@@ -250,7 +250,7 @@ const AddUserBox = styled(Box)`
     border-radius: 18px;
     color: #000;
     // display: block;
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     font-size: 1rem;
     padding: 10px 15px;
     position: relative;
@@ -261,7 +261,7 @@ const AddUserBox = styled(Box)`
     border-radius: 18px;
     color: #000;
     cursor: pointer;
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     font-size: 1rem;
     padding: 10px 15px;
     width: 98%;
@@ -271,7 +271,7 @@ const AddUserBox = styled(Box)`
     background: rgb(242, 242, 242);
     border: none;
     border-radius: 20px;
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     font-size: 1rem;
     height: 44px;
     margin-top: 25px;

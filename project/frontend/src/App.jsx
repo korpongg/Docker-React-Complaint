@@ -1,5 +1,11 @@
 import React, { useEffect } from "react";
-import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import { useWebSocket } from "./context/WebSocketContext";
 import "./App.css";
 
@@ -9,26 +15,31 @@ import RequireAuth from "./components/RequireAuth";
 
 import Login from "./view/user/Login";
 import Logout from "./view/user/Logout";
-import EventOcc from "./components/Occurrence/Event";
 
 import Home from "./view/pages/Home";
 
-import Dashboard from "./components/Occurrence/Dashboard"
-import Occurrence from "./components/Occurrence/form";
-import Medication from "./components/Medication";
-import MedicationF from "./components/Occurrence/form/medex";
+import Dashboard from "./components/RiskManagement/Dashboard";
+import Complaint from "./components/RiskManagement/form";
+import Complaintview from "./components/RiskManagement/formview";
 
+import Dashboard2 from "./components/Complaints/Dashboard";
+import Complaint2 from "./components/Complaints/form";
+
+import Dashboard3 from "./components/ComplaintResponse/Dashboard";
+import Complaint3 from "./components/ComplaintResponse/form";
+
+import Dashboard4 from "./components/SummaryComplaint/Dashboard";
+import Complaint4 from "./components/SummaryComplaint/form";
 import AddUser from "./view/admin/AddUser";
 import Usermanager from "./view/admin/Usermanager";
-
-import OccurrenceReport from "./components/Report/OccurrenceReport";
 
 import DeptManage from "./view/admin/DeptManage";
 import SupManage from "./view/admin/SupManage";
 
 import Missing from "./components/Missing";
 import Unauthorized from "./components/Unauthorized";
-
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 const ROLES = {
   User: "1",
   Editor: "2",
@@ -38,10 +49,6 @@ const ROLES = {
 function App() {
   const { disconnectWebSocket } = useWebSocket();
   const location = useLocation();
-  
-  useEffect(() => {
-    disconnectWebSocket(); // Call disconnectWebSocket when the location changes
-  }, [location.pathname]);
 
   return (
     <>
@@ -61,24 +68,71 @@ function App() {
             }
           >
             <Route path="/home" element={<Home />} />
-
-            <Route path="/occurrence" element={<Dashboard />} />
-            <Route path="/occurrence/event" element={<EventOcc />} />
-            <Route path="/occurrence/:id" element={<Occurrence Mode="Show" />} />
-            <Route path="/occurrence/form" element={<Occurrence Mode="Add" />} />
-            <Route path="/occurrence/form/:id" element={<Occurrence Mode="Edit" />} />
-
-            <Route path="/medication" element={<Medication />} />
-            <Route path="/medication/:id" element={<MedicationF Mode="Show" />} />
-            <Route path="/medication/form" element={<MedicationF Mode="Add" />} />
-            <Route path="/medication/form/:id" element={<MedicationF Mode="Edit" />} />
-            <Route path="/medication/form/approve/:id" element={<MedicationF Mode="Aprove" />} />
+            <Route path="/riskmanagement" element={<Dashboard />} />
+            <Route
+              path="/riskmanagement/:id"
+              element={<Complaint Mode="Show" />}
+            />
+            <Route
+              path="/riskmanagement/form"
+              element={<Complaint Mode="Add" />}
+            />
+            <Route
+              path="/riskmanagement/form/:id"
+              element={<Complaint Mode="Edit" />}
+            />
+            <Route
+              path="/riskmanagement/formview/:id"
+              element={<Complaintview Mode="Edit" />}
+            />{" "}
+            <Route
+              path="/riskmanagement/formview"
+              element={<Complaintview Mode="Add" />}
+            />
+            <Route path="/complaints" element={<Dashboard2 />} />
+            <Route
+              path="/complaints/:id"
+              element={<Complaint2 Mode="Show" />}
+            />
+            <Route
+              path="/complaints/form"
+              element={<Complaint2 Mode="Add" />}
+            />
+            <Route
+              path="/complaints/form/:id"
+              element={<Complaint2 Mode="Edit" />}
+            />
+            <Route path="/complaintresponse" element={<Dashboard3 />} />
+            <Route
+              path="/complaintresponse/:id"
+              element={<Complaint3 Mode="Show" />}
+            />
+            <Route
+              path="/complaintresponse/form"
+              element={<Complaint3 Mode="Add" />}
+            />
+            <Route
+              path="/complaintresponse/form/:id"
+              element={<Complaint3 Mode="Edit" />}
+            />
+            <Route path="/summarycomplaint" element={<Dashboard4 />} />
+            <Route
+              path="/summarycomplaint/:id"
+              element={<Complaint4 Mode="Show" />}
+            />
+            <Route
+              path="/summarycomplaint/form"
+              element={<Complaint4 Mode="Add" />}
+            />
+            <Route
+              path="/summarycomplaint/form/:id"
+              element={<Complaint4 Mode="Edit" />}
+            />
           </Route>
 
           <Route element={<RequireAuth allowedRoles={[ROLES.Admin]} />}>
             <Route path="/adduser" element={<AddUser />} />
             <Route path="/usermanager" element={<Usermanager />} />
-            <Route path="/occurrence/report" element={<OccurrenceReport />} />
             <Route path="/deptmanager" element={<DeptManage />} />
             <Route path="/supmanager" element={<SupManage />} />
           </Route>

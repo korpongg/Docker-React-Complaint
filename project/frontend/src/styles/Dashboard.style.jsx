@@ -25,7 +25,7 @@ export const DashboardBox = styled(Box)`
   }
 
   .MuiDataGrid-toolbarContainer .MuiButton-root {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     font-size: 16px;
   }
 
@@ -50,7 +50,7 @@ export const DashboardBox = styled(Box)`
   .MuiDataGrid-cell,
   .MuiTablePagination-selectLabel,
   .MuiTablePagination-displayedRows {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     outline: unset !important;
   }
 
@@ -123,7 +123,6 @@ export const DashboardBox = styled(Box)`
   }
 
   @media screen and (max-width: 1600px) {
-    margin-top: 40px;
     width: 86vw;
   }
 
@@ -162,17 +161,17 @@ export const SearchContainer = styled(Box)`
 
 export const IncidentDialog = styled(Dialog)`
   #incident-dialog-title {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
   }
 
   #incident-dialog-title, label, .MuiButton-root, button, textarea, .MuiTypography-root, .MuiSelect-select {
-    font-family: 'Prompt', sans-serif !important;
+    font-family: "Mali", sans-serif !important;
   }
 `;
 
 export const TranferDialogBox = styled(Dialog)`
   #tranfer-dialog-title {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
   }
 
   .odd-row {
@@ -186,7 +185,7 @@ export const TranferDialogBox = styled(Dialog)`
   }
 
   .MuiDataGrid-toolbarContainer .MuiButton-root {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
   }
 
   .MuiDataGrid-root,
@@ -194,7 +193,7 @@ export const TranferDialogBox = styled(Dialog)`
   .MuiDataGrid-cell,
   .MuiTablePagination-selectLabel,
   .MuiTablePagination-displayedRows {
-    font-family: inherit;
+    font-family: "Mali", sans-serif !important;
     outline: unset !important;
   }
 

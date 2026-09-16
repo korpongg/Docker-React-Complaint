@@ -44,6 +44,8 @@
 
 .card {
   padding: 2em;
+    border: 1px solid #e6e6e6;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
 }
 
 .read-the-docs {
@@ -135,13 +137,13 @@ section#dbPicker_modal_calendar table button::after {
 
 .MuiAlert-message {
   /* font-family: 'DB-Helvethaica-X', 'Kanit', sans-serif; */
-  font-family: 'Prompt', sans-serif;
+    font-family: "Mali", sans-serif;
 }
 
 * div[role=tooltip] .MuiTooltip-tooltip {
   background: #000;
   /* font-family: 'DB-Helvethaica-X', 'Kanit', sans-serif; */
-  font-family: 'Prompt', sans-serif;
+    font-family: "Mali", sans-serif;
   font-size: 0.875rem;
 }
 
@@ -192,3 +194,4 @@ section#dbPicker_modal_calendar table button::after {
     color:inherit;
   }
 }
+

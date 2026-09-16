@@ -9,7 +9,7 @@ import { createGlobalStyle } from "styled-components";
 
 export const GlobalStyle = createGlobalStyle`
   * {
-    font-family: 'Prompt', sans-serif !important;
+    font-family: "Mali", sans-serif !important;
   }
     
   ::-webkit-scrollbar {

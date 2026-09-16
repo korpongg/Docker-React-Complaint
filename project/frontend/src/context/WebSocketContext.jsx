@@ -1,84 +1,167 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { setReloadTimeout, clearReloadTimeout } from '../components/timeoutUtil';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 
-// Create a context for the WebSocket
 const WebSocketContext = createContext(null);
-
-// Custom hook to use the WebSocket context
 export const useWebSocket = () => useContext(WebSocketContext);
 
-// Provider component to manage the WebSocket connection
 export const WebSocketProvider = ({ children }) => {
-    const [socket, setSocket] = useState(null);
-    const [dataCenter, setDataCenter] = useState([]);
-    const [dataMedic, setDataMedic] = useState([]);
-    const [dataEvent, setDataEvent] = useState([]);
-    const [load, setLoad] = useState(true);
 
-    // Function to initiate the WebSocket connection
-    const connectWebSocket = useCallback(() => {
-        // setReloadTimeout(); // Call this function to set the initial timeout
-        // Establish the WebSocket connection
-        const ws = new WebSocket(`${import.meta.env.VITE_REACT_APP_API_BC_PREFIX}${window.location.hostname}${import.meta.env.VITE_REACT_APP_API_BC}`);
+  const socketRef = useRef(null);
+  const requestQueue = useRef([]);
 
-        ws.onopen = () => {
-            console.log('WebSocket connection opened.');
-            // You can add more logic here for when the connection opens
-        };
+  const [isConnected, setIsConnected] = useState(false);
 
-        ws.onmessage = (event) => {
-            // Handle incoming WebSocket messages
-            // console.log('Received data:', event.data);
-            const data = JSON.parse(event.data);
-            // setReloadTimeout(); // Call this function when a message is received.
+  const [dataCenter, setDataCenter] = useState([]);
+  const [dataCenter2, setDataCenter2] = useState([]);
+  const [dataCenter3, setDataCenter3] = useState([]);
+  const [dataCenter4, setDataCenter4] = useState([]);
+const [menuCount, setMenuCount] = useState({
+  complaint: 0,
+  admin: 0,
+  response: 0,
+  summary: 0,
+});
+  const [load, setLoad] = useState(false);
 
+  const WS_URL =
+    `${import.meta.env.VITE_REACT_APP_API_BC_PREFIX}` +
+    `${window.location.hostname}` +
+    `${import.meta.env.VITE_REACT_APP_API_BC}`;
+const connectingRef = useRef(false);
 
-            setDataCenter(data.report_data || []);
-            setDataMedic(data.medic_data || []);
-            setDataEvent(data.event_data || []);
-            setLoad(false);
-        };
+const connectWebSocket = useCallback(() => {
 
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            // Handle WebSocket errors
-        };
+  if (socketRef.current || connectingRef.current) return;
 
-        ws.onclose = () => {
-            console.log('WebSocket connection closed.');
-            // Handle WebSocket disconnection
-        };
+  connectingRef.current = true;
 
-        setSocket(ws);
-        return () => {
-            // clearReloadTimeout();
-            ws.close();
-        };
-    }, []);
+  const ws = new WebSocket(WS_URL);
+  socketRef.current = ws;
 
-    // Function to close the WebSocket connection
-    const disconnectWebSocket = useCallback(() => {
-        if (socket) {
-            // clearReloadTimeout();
-            socket.close();
-            setSocket(null); // Reset the socket state
-            console.log('WebSocket connection closed by disconnect function.');
+  ws.onopen = () => {
+    console.log("✅ WebSocket connected");
+
+    setIsConnected(true);
+    connectingRef.current = false;
+
+    // 🔥 ส่ง queue ที่ค้าง
+    while (requestQueue.current.length > 0) {
+      const req = requestQueue.current.shift();
+      ws.send(JSON.stringify(req));
+    }
+  };
+
+  ws.onclose = () => {
+    console.log("❌ WebSocket closed");
+    setIsConnected(false);
+    socketRef.current = null;
+    connectingRef.current = false;
+
+    setTimeout(connectWebSocket, 2000);
+  };
+
+  ws.onerror = (err) => {
+    console.error("WebSocket error:", err);
+  };
+
+  ws.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+
+    if (message.type === "CENTER_DATA") {
+
+        switch (message.requestType) {
+
+          case "DATA1":
+            setDataCenter(message.data);
+            break;
+
+          case "DATA2":
+          setDataCenter2((prev) => {
+    if (JSON.stringify(prev) === JSON.stringify(message.data)) {
+      return prev;
+    }
+    return message.data;
+  });
+            break;
+
+          case "DATA3":
+            setDataCenter3(message.data);
+            break;
+
+          case "DATA4":
+            setDataCenter4(message.data);
+            break;
+
+          default:
+            break;
         }
-    }, [socket]);
 
-    const value = {
+      setLoad(false);
+    }
+
+    if (message.type === "COUNT_DATA") {
+
+  setMenuCount(message.data);
+
+  return;
+}
+  };
+
+}, []);
+
+  const requestData = useCallback((requestType, payload = {}) => {
+
+   const request = {
+    type: requestType === "COUNT" 
+      ? "GET_COUNT" 
+      : "GET_DATA",
+
+    requestType,
+    payload,
+  };
+
+    const ws = socketRef.current;
+
+    setLoad(true);
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+
+      ws.send(JSON.stringify(request));
+
+    } else {
+
+      console.log("📦 queue request", requestType);
+      requestQueue.current.push(request);
+
+      if (!ws) {
+        connectWebSocket();
+      }
+
+    }
+
+  }, [connectWebSocket]);
+
+  return (
+    <WebSocketContext.Provider
+      value={{
         connectWebSocket,
-        disconnectWebSocket,
-        socket,
-        dataCenter,
-        dataMedic,
-        dataEvent,
-        load
-    };
+        requestData,
+        isConnected,
+        menuCount,
 
-    return (
-        <WebSocketContext.Provider value={value}>
-            {children}
-        </WebSocketContext.Provider>
-    );
+        dataCenter,
+        dataCenter2,
+        dataCenter3,
+        dataCenter4,
+        load,
+      }}
+    >
+      {children}
+    </WebSocketContext.Provider>
+  );
 };

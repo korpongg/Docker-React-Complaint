@@ -1,4 +1,4 @@
-USE occurrence;
+USE complaint;
 
 CREATE VIEW users AS
 SELECT 
