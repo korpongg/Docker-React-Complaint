@@ -132,31 +132,48 @@ const result2 = await personcomplaint.create({
       status:1,
     });
 
-    if (fileData.length > 0) {
-      const renamePromises = fileData.map((file,index) => {
-        const fileExt = path.extname(file.originalname).toLowerCase();
-        const newFilename = `OCC${reportId}_${index+1}${fileExt}`;
+  if (fileData.length > 0) {
+  const renamePromises = fileData.map((file, index) => {
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    const newFilename = `OCC${reportId}_${index + 1}${fileExt}`;
 
-        const oldPath = file.path;
+    const oldPath = file.path;
 
-        
-        return new Promise((resolve, reject) => {
-          fs.rename(oldPath, newPath, async (err) => {
-            if (err) {
-              reject(err);
+    const newPath = path.join(
+      __dirname,
+      process.env.DB_STORE2,
+      newFilename
+    );
+
+    return new Promise((resolve, reject) => {
+      fs.rename(oldPath, newPath, async (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          const newBuildPath = path.join(
+            __dirname,
+            process.env.DB_STORE2_BUILD,
+            newFilename
+          );
+
+          fs.copyFile(newPath, newBuildPath, (copyErr) => {
+            if (copyErr) {
+              reject(copyErr);
             } else {
-              const newBuildPath = path.join(__dirname, process.env.DB_STORE2_BUILD, newFilename);
-              fs.copyFile(newPath, newBuildPath, (copyErr) => {
-                if (copyErr) reject(copyErr);
-                else resolve(newFilename);
-              });
+              resolve(newFilename);
             }
           });
-        });
+        }
       });
-     result.image = JSON.stringify(await Promise.all(renamePromises));
-await result.save();
-    }
+    });
+  });
+
+  result.image = JSON.stringify(
+    await Promise.all(renamePromises)
+  );
+
+  await result.save();
+}
 
     executeAndStoreQueryResult();
     res.status(201).json(result);
@@ -632,14 +649,13 @@ oldImages.forEach(filename=>{
 ]);
 }
 
-console.log("BEFORE SAVE");
 
 let result;
 
 try {
   result = await complaint.save();
 } catch(err) {
-  console.log("SAVE ERROR");
+
   console.log(err);
   console.log(err.stack);
   throw err;

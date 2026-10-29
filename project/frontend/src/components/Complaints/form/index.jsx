@@ -11,9 +11,9 @@ import Divider from "@mui/material/Divider";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import GeneralInfo from "../../form/GeneralInfo2";
 import ReportLog from "../../form/ReportLog";
-
+import { Container, Stack, Paper, Typography, Chip } from "@mui/material";
 import NavForm from "../../form/NavForm";
-
+import Workflow from "../../form/workflow";
 import Swal from "sweetalert2";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import { BadgeAlert } from "lucide-react";
@@ -50,7 +50,8 @@ const Complaint = ({ Mode }) => {
   const [Stage, setStage] = useState(1);
   const [OccStage, setOccStage] = useState(0);
   const [formData, setFormData] = useState({});
-
+  
+  const [activeStep, setActiveStep] = useState(0);
   const [disable, setDisable] = useState(false);
   const [attachData, setAttachData] = useState({
     filePDF: null,
@@ -74,6 +75,7 @@ const Complaint = ({ Mode }) => {
   const [patientan, setPatientAn] = useState("");
   const [patientdiagnosis, setPatientDiagnosis] = useState("");
   const [images, setImages] = useState([]);
+  const [documentFiles, setDocumentFiles] = useState([]);
   const [name, setName] = useState("");
   const [showUrgent, setShowUrgent] = useState(1);
   const [showAppeal, setShowAppeal] = useState(0);
@@ -126,7 +128,21 @@ const Complaint = ({ Mode }) => {
       setEditFormData({ ...EditFormData, [name]: Text });
     }
   };
+const normalizeComplaintCategories = (value) => {
+  if (Array.isArray(value)) return value;
 
+  if (typeof value === "string" && value.trim() !== "") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error("Invalid complaintCategories JSON:", error);
+      return [];
+    }
+  }
+
+  return [];
+};
   const handleReplaceData = (source, destination) => {
     const tempsource = formData[source];
     // console.log("tempsource",tempsource);
@@ -348,7 +364,7 @@ const Complaint = ({ Mode }) => {
         ...config, // ✅ รวม header auth
       });
 
-      console.log("patient:", res.data);
+
       if (res.data.length > 0) {
         const fullName = `${res.data[0].FirstName} ${res.data[0].LastName}`;
         handleDataChange({ target: { value: fullName } }, "patient_name");
@@ -387,6 +403,9 @@ const Complaint = ({ Mode }) => {
               userreport: response.data.createby,
               reportdate: TimeConverter(response.data.createAt, -7),
               complaintdate: TimeConverter(response.data.complaintdate, -7),
+               complaintCategories: normalizeComplaintCategories(
+  response.data.complaintCategories
+),
               aff: response.data.requestaff,
               faction: response.data.requestfac,
               dep: response.data.requestdep,
@@ -404,6 +423,9 @@ const Complaint = ({ Mode }) => {
               userreport: response.data.createby,
               reportdate: TimeConverter(response.data.createAt, -7),
               complaintdate: TimeConverter(response.data.complaintdate, -7),
+               complaintCategories: normalizeComplaintCategories(
+  response.data.complaintCategories
+),
               aff: response.data.requestaff,
               faction: response.data.requestfac,
               dep: response.data.requestdep,
@@ -417,6 +439,9 @@ const Complaint = ({ Mode }) => {
                 userreport: response.data.createby,
                 reportdate: TimeConverter(response.data.createAt, -7),
                 complaintdate: TimeConverter(response.data.complaintdate, -7),
+                 complaintCategories: normalizeComplaintCategories(
+  response.data.complaintCategories
+),
                 aff: response.data.requestaff,
                 faction: response.data.requestfac,
                 dep: response.data.requestdep,
@@ -429,6 +454,9 @@ const Complaint = ({ Mode }) => {
                 userreport: response.data.createby,
                 reportdate: TimeConverter(response.data.createAt, -7),
                 complaintdate: TimeConverter(response.data.complaintdate, -7),
+                 complaintCategories: normalizeComplaintCategories(
+  response.data.complaintCategories
+),
                 aff: response.data.requestaff,
                 faction: response.data.requestfac,
                 dep: response.data.requestdep,
@@ -443,6 +471,9 @@ const Complaint = ({ Mode }) => {
                 userreport: response.data.createby,
                 reportdate: TimeConverter(response.data.createAt, -7),
                 complaintdate: TimeConverter(response.data.complaintdate, -7),
+                 complaintCategories: normalizeComplaintCategories(
+  response.data.complaintCategories
+),
                 aff: response.data.requestaff,
                 faction: response.data.requestfac,
                 dep: response.data.requestdep,
@@ -760,7 +791,13 @@ const Complaint = ({ Mode }) => {
     "service",
     "utility",
   ];
+  const handleDocumentUpload = (files) => {
+    if (!files || files.length === 0) return;
 
+    const selectedFiles = Array.from(files);
+
+    setDocumentFiles((prev) => [...prev, ...selectedFiles]);
+  };
   const handleSubmit = async (Mode) => {
     if (!formData.date) {
       setErrors((prev) => ({ ...prev, date: true }));
@@ -789,60 +826,59 @@ const Complaint = ({ Mode }) => {
       return; // ⛔ หยุด submit
     }
 
+ if (array.length === 0) {
+  setErrors((prev) => ({
+    ...prev,
+    appeal: true,
+  }));
+
+  setTimeout(() => {
+    const el = inputRefs.current.appeal;
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      const firstRadio = el.querySelector(
+        'input[type="radio"]'
+      );
+
+      if (firstRadio) {
+        firstRadio.focus();
+      }
+    }
+  }, 100);
+
+  return;
+}
   
-    if (array.length == 0) {
-      setErrors((prev) => ({ ...prev, appeal: true }));
+   if (!formData.summarize) {
+  setErrors((prev) => ({
+    ...prev,
+    summarize: true,
+  }));
 
-      const el = inputRefs.current.appeal;
-      if (el) {
-        el.focus();
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-      return;
-    }
+  setTimeout(() => {
+    const el = inputRefs.current.summarize;
 
-    /*         if (!formData.patient_hn) {
-    setErrors((prev) => ({ ...prev, patient_hn: true }));
-
-    const el = inputRefs.current.patient_hn;
     if (el) {
-      el.focus();
       el.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
-    }
-    return;
-  }
-      if (!formData.patient_name) {
-    setErrors((prev) => ({ ...prev, patient_name: true }));
 
-    const el = inputRefs.current.patient_name;
-    if (el) {
-      el.focus();
-      el.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
-    return;
-  }*/
-    if (!formData.summarize) {
-      setErrors((prev) => ({ ...prev, summarize: true }));
+      const textarea = el.querySelector("textarea");
 
-      const el = inputRefs.current.summarize;
-      if (el) {
-        el.focus();
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
+      if (textarea) {
+        textarea.focus();
       }
-      return;
     }
+  }, 100);
+
+  return;
+}
     const missingKeys = keydata.filter(({ key }) => {
       if (key === "deptrelate") {
         return !(formData[key] && formData[key].length);
@@ -941,8 +977,11 @@ const Complaint = ({ Mode }) => {
         images.forEach((image) => {
           submitFormData.append("files", image);
         });
-        console.log("submitFormData");
-        console.log(submitFormData);
+
+        documentFiles.forEach((file) => {
+          submitFormData.append("files", file);
+        });
+   
         for (const [key, value] of submitFormData.entries()) {
           if (key.toLowerCase().includes("date")) {
             console.log(key, value);
@@ -955,15 +994,12 @@ const Complaint = ({ Mode }) => {
             { ...config },
           );
           const responseStatus = response.status;
-
-          if (responseStatus === 200 || responseStatus === 201) {
-            navigate("/complaints");
-          }
+          navigate("/complaints");
         } catch (err) {
-  console.log("ERROR RESPONSE", err.response?.data);
-  console.log("STATUS", err.response?.status);
-  console.log("FULL ERROR", err);
-}
+          console.log("ERROR RESPONSE", err.response?.data);
+          console.log("STATUS", err.response?.status);
+          console.log("FULL ERROR", err);
+        }
       } else {
         setStage(1);
         setOccStage(0);
@@ -1023,20 +1059,31 @@ const Complaint = ({ Mode }) => {
       return; // ⛔ หยุด submit
     }
 
-
     if (!formData.summarize) {
-      setErrors((prev) => ({ ...prev, summarize: true }));
+  setErrors((prev) => ({
+    ...prev,
+    summarize: true,
+  }));
 
-      const el = inputRefs.current.summarize;
-      if (el) {
-        el.focus();
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
+  setTimeout(() => {
+    const el = inputRefs.current.summarize;
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      const textarea = el.querySelector("textarea");
+
+      if (textarea) {
+        textarea.focus();
       }
-      return;
     }
+  }, 100);
+
+  return;
+}
 
     const missingKeys = keydata.filter(({ key }) => {
       if (key === "deptrelate") {
@@ -1130,18 +1177,21 @@ const Complaint = ({ Mode }) => {
         submitEditFormData.set("time", time);
         submitEditFormData.append("updateImage", "1");
 
-       submitEditFormData.append(
-  "oldImages",
-  JSON.stringify(
-    images.filter(img => typeof img === "string")
-  )
-);
+        submitEditFormData.append(
+          "oldImages",
+          JSON.stringify(images.filter((img) => typeof img === "string")),
+        );
 
-images.forEach((image) => {
-  if (image instanceof File) {
-    submitEditFormData.append("files", image);
-  }
-});
+        images.forEach((image) => {
+          if (image instanceof File) {
+            submitEditFormData.append("files", image);
+          }
+        });
+        documentFiles.forEach((file) => {
+          if (file instanceof File) {
+            submitEditFormData.append("files", file);
+          }
+        });
 
         try {
           const response = await axios.put(
@@ -1156,8 +1206,8 @@ images.forEach((image) => {
           }
         } catch (err) {
           console.log("ERROR RESPONSE", err.response?.data);
-  console.log("STATUS", err.response?.status);
-  console.log("FULL ERROR", err);
+          console.log("STATUS", err.response?.status);
+          console.log("FULL ERROR", err);
         }
       } else {
         setStage(1);
@@ -1202,204 +1252,234 @@ images.forEach((image) => {
       window.scrollTo({ top: yPosition, behavior: "smooth" });
     }
   };
+  const handleStepClick = (step) => {
+    // หน้า Admin นี้รองรับการเปิดดู Step 01
+    // และกลับมาที่ Step 02
+    if (step === 0) {
+      setActiveStep(step);
 
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  };
   return (
     <>
       <ComplaintStyle>
-        <div
-          className="px-4 py-3 "
-          style={{
-            background: "#ffffff",
-            border: "2px solid #262b20ff",
+        <Box
+          sx={{
             position: "relative",
-            minHeight: "72px",
+            width: "100%",
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
+            gap: 2,
+            bgcolor: "#FEF2F2",
+            px: 3,
+            py: 2.5,
+
+            border: "1px solid #FECACA",
+            borderRadius: 2,
+            boxShadow: "0 4px 14px rgba(2,132,199,.08)",
+        
           }}
         >
-          <IconButton
-            onClick={() => navigate(-1)}
+          <Box
             sx={{
-              position: "absolute",
-              left: 16,
-              top: "50%",
-              transform: "translateY(-50%)",
-              backgroundColor: "#e6f4ea",
-              "&:hover": {
-                backgroundColor: "#166534",
-                color: "#fff",
-              },
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          {/* ===== Center Title ===== */}
-          <div
-            style={{
-              position: "absolute",
-              left: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: "50%",
-                  bgcolor: "#FEE2E2",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <BadgeAlert size={28} color="#DC2626" />
-              </Box>
-
-              <h4
-                style={{
-                  margin: 0,
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {Mode === "Add" && "แบบบันทึกข้อร้องเรียน / ข้อเสนอแนะ"}
-                {Mode === "Edit" &&
-                  "แบบบันทึกข้อร้องเรียน / ข้อเสนอแนะ (แก้ไข)"}
-                {Mode === "Show" &&
-                  "แบบบันทึกข้อร้องเรียน / ข้อเสนอแนะ (ดูได้เท่านั้น)"}
-              </h4>
-            </div>
-          </div>
-          {/* ===== Right Actions ===== */}
-          <div
-            style={{
-              marginLeft: "auto",
+              width: 64,
+              height: 64,
+              borderRadius: "18px",
+              bgcolor: "#fff",
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              justifyContent: "center",
+              border: "1px solid #FECACA",
+
+              boxShadow: "0 4px 14px rgba(220,38,38,.08)",
             }}
           >
-            {formData && Mode !== "Add" && (
-              <div
-                style={{
-                  position: "absolute",
-                  right: "16px",
-                  bottom: "10px",
-                  fontSize: "14px",
-                  color: "#374151",
-                  whiteSpace: "nowrap",
-                  alignItems: "center",
-                  gap: "8px",
-                  background: "#F1F5F9",
-                  padding: "6px 14px",
-                  borderRadius: "999px",
-                  border: "1px solid #E2E8F0",
-                  fontSize: "13px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <span
-                  style={{
-                    fontWeight: 600,
-                    letterSpacing: "1px",
-                    color: "#0F172A",
-                  }}
-                >
-                  เอกสาร : {reportid}
-                </span>
-              </div>
-            )}
+            <BadgeAlert size={34} color="#DC2626" />
+          </Box>
 
-            {Mode === "Add" && (
-              <Tooltip title="ล้างข้อมูลทั้งหมด">
-                <IconButton
-                  size="small"
-                  onClick={ClearData}
-                  sx={{
-                    color: "#6B7280",
-                    "&:hover": {
-                      color: "#EF4444",
-                      backgroundColor: "#FEE2E2",
-                    },
-                  }}
-                >
-                  <CleaningServicesIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-          </div>
-        </div>
+          <Box sx={{ flex: 1 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: "#991B1B",
+              }}
+            >
+              {Mode === "Add" && "ร้องเรียน"}
+              {Mode === "Edit" && "แก้ไขรายงานเหตุการณ์"}
+              {Mode === "Show" && "รายละเอียดรายงานเหตุการณ์"}
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                color: "#64748B",
+                mt: 0.5,
+              }}
+            >
+              INCIDENT REPORT
+            </Typography>
+          </Box>
+
+          <Chip
+            label={"RISK MANAGEMENT"}
+            className="mt-5"
+            sx={{
+              bgcolor: "#fedbdbff",
+              color: "#850707ff",
+              fontWeight: 700,
+              borderRadius: 2,
+              position: "absolute",
+              right: 24,
+              maxWidth: "40%",
+            }}
+          />
+        </Box>
 
         <Box className="MainContainer">
+          <ComplaintViewStyle>
+            <Workflow
+              reportid={reportid}
+              activeStep={activeStep}
+              onStepClick={handleStepClick}
+              stepflow={1}
+            />
+          </ComplaintViewStyle>
           {Stage === 1 && (
             <ComplaintViewStyle>
-              <GeneralInfo
-                Mode={Mode}
-                array={array}
-                data={formData}
-                disable={disable}
-                setSingleDataFunction={handleDataChangeSingle}
-                missingKeys={AlertBorder}
-                time={time}
-                setCheckBoxFunction={handleCheckChange}
-                FormType="Occ"
-                setDataFunction={handleDataChange}
-                handleSetTime={handleSetTime}
-                handleSetName={handleSetName}
-                setDataPerson={setDataPerson}
-                setChangePerson={setChangePerson}
-                handleSetPhone={handleSetPhone}
-                handleSetBoard={handleSetBoard}
-                handlePatientHn={handlePatientHn}
-                handlePatientName={handlePatientName}
-                handlePatientAge={handlePatientAge}
-                handlePatientAn={handlePatientAn}
-                handlePatientDiagnosis={handlePatientDiagnosis}
-                handleSetPerson={handleSetPerson}
-                handleSetDate={handleSetDate}
-                showUrgent={showUrgent}
-                showAppeal={showAppeal}
-                fetchPatientByHN={fetchPatientByHN}
-                removePerson={removePerson}
-                handleDateChange={handleDateChange}
-                handleDataChangeCheckbox={handleDataChangeCheckbox}
-                handleDataChangeCheckbox2={handleDataChangeCheckbox2}
-                images={images}
-                setImages={setImages}
-                setErrors={setErrors}
-                errors={errors}
-                inputRefs={inputRefs}
-              />
+            
 
-              <Divider variant="middle" flexItem sx={{ m: 1 }} />
+                  <div
+                className="page-title"
+                style={{
+                  border: "2px solid #f3d6d6ff",
+                  boxShadow: "0 2px 7px rgba(42, 15, 20, 0.04)",
+                }}
+              >
+                <div className="page-title-top">
+              
+                  <div
+                    className="page-title-index"
+                    style={{
+                       background: "linear-gradient(145deg, #DC2626 0%, #991B1B 100%)",
+    boxShadow: "0 3px 8px rgba(153, 27, 27, 0.20)",
+    color: "#FFFFFF",
+                    }}
+                  >
+                    01
+                  </div>
+              
+                  <div className="page-title-content">
+              
+                    <div
+                      className="page-title-eyebrow"
+                      style={{
+                        color: "#c70223ff",
+                      }}
+                    >
+                      INCIDENT RESPONSE
+                    </div>
+              
+                    <h2>
+                       {Mode === "Add" && "เพิ่มรายงานเหตุการณ์"}
+                      {Mode === "Edit" && "แก้ไขรายงานเหตุการณ์"}
+                      {Mode === "Show" && "รายละเอียดรายงานเหตุการณ์"}
+                    </h2>
+              
+                    <p>
+                     {Mode === "Add" &&
+                        "กรุณากรอกข้อมูลเพื่อสร้างรายงานเหตุการณ์ใหม่"}
+                      {Mode === "Edit" &&
+                        "แก้ไขข้อมูลของรายงานเหตุการณ์ที่มีอยู่"}
+                      {Mode === "Show" &&
+                        "ตรวจสอบรายละเอียดและข้อมูลของรายงานเหตุการณ์"}
+                    </p>
+              
+                  </div>
+              
+                  <div
+                    className="page-title-mode"
+                    style={{
+                      color: "#a10308ff",
+                      background: "#fff0f1ff",
+                      border: "1px solid #fdbacaff",
+                    }}
+                  >
+                    {Mode === "Add" && "เพิ่มข้อมูล"}
+                    {Mode === "Edit" && "แก้ไขข้อมูล"}
+                    {Mode === "Show" && "รายละเอียด"}
+                  </div>
+              
+                </div>
+              </div>
 
-              <NavForm
-                Mode={Mode}
-                Data={formData}
-                Access={formData.createby === UserData.userid || isAdmin}
-                submitfunction={handleSubmit}
-                handleSubmitEdit={handleSubmitEdit}
-                Stage={Stage}
-                text="บันทึก"
-                MaxStage={1}
-                PrevStage={PrevStage}
-                NextStage={NextStage}
-                FirstStage={FirstStage}
-                LastStage={LastStage}
-                ToStage={ToStage}
-                ClearData={ClearData}
-              />
+              <div className="page-form"  style={{
+                  border: "2px solid #f3d6d6ff",
+                  boxShadow: "0 2px 7px rgba(42, 15, 20, 0.04)",
+                }}>
+                <GeneralInfo
+                  Mode={Mode}
+                  array={array}
+                  data={formData}
+                  disable={disable}
+                  setSingleDataFunction={handleDataChangeSingle}
+                  missingKeys={AlertBorder}
+                  time={time}
+                  setCheckBoxFunction={handleCheckChange}
+                  FormType="Occ"
+                  setDataFunction={handleDataChange}
+                  handleSetTime={handleSetTime}
+                  handleSetName={handleSetName}
+                  setDataPerson={setDataPerson}
+                  setChangePerson={setChangePerson}
+                  handleSetPhone={handleSetPhone}
+                  handleSetBoard={handleSetBoard}
+                  handlePatientHn={handlePatientHn}
+                  handlePatientName={handlePatientName}
+                  handlePatientAge={handlePatientAge}
+                  handlePatientAn={handlePatientAn}
+                  handlePatientDiagnosis={handlePatientDiagnosis}
+                  handleSetPerson={handleSetPerson}
+                  handleSetDate={handleSetDate}
+                  showUrgent={showUrgent}
+                  showAppeal={showAppeal}
+                  fetchPatientByHN={fetchPatientByHN}
+                  removePerson={removePerson}
+                  handleDateChange={handleDateChange}
+                  handleDataChangeCheckbox={handleDataChangeCheckbox}
+                  handleDataChangeCheckbox2={handleDataChangeCheckbox2}
+                  handleDocumentUpload={handleDocumentUpload}
+                  images={images}
+                  documentFiles={documentFiles}
+                  setImages={setImages}
+                  setErrors={setErrors}
+                  errors={errors}
+                  inputRefs={inputRefs}
+                />
+                <NavForm
+                  Mode={Mode}
+                  Data={formData}
+                  Access={formData.createby === UserData.userid || isAdmin}
+                  submitfunction={handleSubmit}
+                  handleSubmitEdit={handleSubmitEdit}
+                  Stage={Stage}
+                  text="บันทึกข้อร้องเรียน"
+                  MaxStage={1}
+                  PrevStage={PrevStage}
+                  NextStage={NextStage}
+                  FirstStage={FirstStage}
+                  LastStage={LastStage}
+                  ToStage={ToStage}
+                  ClearData={ClearData}
+                />
+              </div>
             </ComplaintViewStyle>
           )}
-
           {Mode === "Show" &&
             (isAdmin || isEXEC) &&
             Stage === 1 &&

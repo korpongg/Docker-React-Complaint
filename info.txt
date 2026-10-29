@@ -5,7 +5,7 @@ level   =   3
 affiliation =   งานคุณภาพ
 
 
-tranfer =   HA/ADMIN
+tranfer =   QDC/ADMIN
 affiliation =   งานคุณภาพ
 faction =   ....
 formstatus  =   1   tranfer
@@ -14,9 +14,9 @@ formstatus  =   1   tranfer
 *** tranfer ***
 event status
 
-ส่งทบทวน     =   หลังจาก HA สร้างรายการส่งต่อแผนกที่เกี่ยวข้อง (เมื่อทำการสร้าง event ระบบจะ update สถานะตัว Complaint formstatus 4 {อยู่ระหว่างทบทวน})
+ส่งทบทวน     =   หลังจาก QDC สร้างรายการส่งต่อแผนกที่เกี่ยวข้อง (เมื่อทำการสร้าง event ระบบจะ update สถานะตัว Complaint formstatus 4 {อยู่ระหว่างทบทวน})
 ทบทวนแล้ว    =   แผนกมา EDIT สรุปเหตุการณ์ไม่พึงประสงค์
-ทบทวนซ้ำ     =   HA กดปุ่ม 'ทบทวนซ้ำ' (โชว์เฉพาะ สถานะทบทวนแล้ว)
+ทบทวนซ้ำ     =   QDC กดปุ่ม 'ทบทวนซ้ำ' (โชว์เฉพาะ สถานะทบทวนแล้ว)
 
 ---------------------
 
@@ -30,7 +30,7 @@ user
 
 ---------------------
 
-edit/cancel =   เฉพาะคนสร้าง  createby (รหัสพนักงาน) / ADMIN, HA
+edit/cancel =   เฉพาะคนสร้าง  createby (รหัสพนักงาน) / ADMIN, QDC
 
 
 admin   role 3

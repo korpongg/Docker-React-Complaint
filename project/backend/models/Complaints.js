@@ -161,16 +161,16 @@ const Complaints = sequelize.define('Complaints', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  medicalrecorded: {
-    type: DataTypes.STRING(1),
+  generalRisk: {
+    type: DataTypes.INTEGER,
     allowNull: true
   },
-  reportacknowledge: {
-    type: DataTypes.STRING(1),
+  clinicalRisk: {
+    type: DataTypes.INTEGER,
     allowNull: true
   },
-  reportother: {
-    type: DataTypes.STRING(1),
+  generalRiskLevel: {
+    type: DataTypes.INTEGER,
     allowNull: true
   },
   otherremark: {
@@ -181,7 +181,7 @@ const Complaints = sequelize.define('Complaints', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  activefailure: {
+  remark: {
     type: DataTypes.TEXT,
     allowNull: true
   },
@@ -263,27 +263,15 @@ const Complaints = sequelize.define('Complaints', {
     type: DataTypes.INTEGER,
     allowNull: true
   },
+  complaintCategories :{
+      type: DataTypes.TEXT,
+  allowNull: true
+  }
 }, {
   tableName: 'Complaints',
   timestamps: false // Disable automatic timestamps
 });
 
-// Occurrences.belongsTo(User, {
-//   foreignKey: 'createby',
-//   targetKey: 'userid',
-//   as: 'CreateBy',
-// });
 
-// Occurrences.belongsTo(User, {
-//   foreignKey: 'acceptby',
-//   targetKey: 'userid',
-//   as: 'AcceptBy',
-// });
-
-// Occurrences.belongsTo(User, {
-//   foreignKey: 'updateby',
-//   targetKey: 'userid',
-//   as: 'UpdateBy',
-// });
 
 module.exports = Complaints;

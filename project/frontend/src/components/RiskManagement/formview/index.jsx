@@ -16,21 +16,36 @@ import GeneralInfo4 from "../../form/GeneralInfoView4";
 import GeneralInfo from "../../form/GeneralInfoView2";
 import ReportLog from "../../form/ReportLog";
 
-
-
-
-
-
 import NavForm from "../../form/NavForm";
-
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-
-
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
+import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 
 import { ComplaintStyle } from "../../../styles/ComplaintStyle.style";
 import { ComplaintViewStyle } from "../../../styles/ComplaintView.style";
 
+import {
+  CircleAlert,
+  ClipboardCheck,
+  MessageSquareReply,
+  FileCheck2,
+  CircleX,
 
+  CheckCircle2,
+} from "lucide-react";
+import {
+  BadgeAlert,
+  ShieldCheck,
+  Send,
+  ChartColumn,
+} from "lucide-react";
 import {
   chkAdmins,
   chkAdmin,
@@ -55,6 +70,10 @@ const Complaint = ({ Mode }) => {
     managementremark: null,
     responseDueDate: null,
   });
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+const [completeSubmitting, setCompleteSubmitting] = useState(false);
+
+const [completeRemark, setCompleteRemark] = useState("");
   const OccType = "Complaint";
   const apiUrl = import.meta.env.VITE_REACT_APP_API_URL;
   const hostUrl = import.meta.env.VITE_REACT_APP_HOST_URL;
@@ -68,6 +87,8 @@ const Complaint = ({ Mode }) => {
   const [Stage, setStage] = useState(1);
   const [OccStage, setOccStage] = useState(0);
   const [formData, setFormData] = useState({});
+
+  const [risk, setRisk] = useState(null);
   const [formData2, setFormData2] = useState({});
   const [formData3, setFormData3] = useState({});
   const [formData4, setFormData4] = useState({});
@@ -75,10 +96,12 @@ const Complaint = ({ Mode }) => {
   const [showAppeal, setShowAppeal] = useState(0);
   const [disable, setDisable] = useState(false);
   const [showUrgent, setShowUrgent] = useState(1);
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(true);
   const [show2, setShow2] = useState(false);
   const [show3, setShow3] = useState(false);
   const [show4, setShow4] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+
   const [array, setArray] = useState([]);
 
   const [attachData, setAttachData] = useState({
@@ -117,7 +140,45 @@ const Complaint = ({ Mode }) => {
       setEditFormData({ ...EditFormData, [name]: Text });
     }
   };
+  const handleStepClick = (step) => {
+    setStage(1);
 
+    if (step === 1) {
+      setShow(true);
+      setShow2(false);
+      setShow3(false);
+      setShow4(false);
+    }
+
+    if (step === 2) {
+      setShow(false);
+      setShow2(false);
+      setShow3(false);
+      setShow4(false);
+
+      // ถ้า GeneralInfo หลักคือขั้นตอน 2
+      setShow3(true);
+    }
+
+    if (step === 3) {
+      setShow(false);
+      setShow2(true);
+      setShow3(false);
+      setShow4(false);
+    }
+
+    if (step === 4) {
+      setShow(false);
+      setShow2(false);
+      setShow3(false);
+      setShow4(true);
+    }
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
   const handleReplaceData = (source, destination) => {
     const tempsource = formData[source];
     // console.log("tempsource",tempsource);
@@ -148,7 +209,6 @@ const Complaint = ({ Mode }) => {
     }
   };
 
-
   // Get Data For Mode Edit&Show
   const FetchPerson = async (id) => {
     try {
@@ -157,11 +217,10 @@ const Complaint = ({ Mode }) => {
         config,
       );
       if (response2.status === 200 || response2.status === 201) {
-   
         const list = Array.isArray(response2.data)
           ? response2.data
           : Object.values(response2.data);
-
+     
         setArray(
           list.map((item) => ({
             id: item.id,
@@ -169,7 +228,10 @@ const Complaint = ({ Mode }) => {
             department: item.departmentName,
             faction: Number(item.faction),
           })),
+
         );
+
+       
         if (list.length > 0) {
           setShowAppeal(1);
         }
@@ -184,6 +246,8 @@ const Complaint = ({ Mode }) => {
       );
 
       if (response.status === 200 || response.status === 201) {
+           setRisk(response.data?.risk ?? null);
+           setCompleteRemark(response.data?.remark || "");
         setFormData2({
           ...response.data,
           userreport: response.data.createby,
@@ -194,6 +258,8 @@ const Complaint = ({ Mode }) => {
           dep: response.data.requestdep,
           // renew: response.data.description || null,
         });
+
+      
         if (Mode === "Edit") {
           if (isAdmin || UserData.userid === response.data.createby) {
             (setFormData2({
@@ -269,11 +335,11 @@ const Complaint = ({ Mode }) => {
         }
       }
     } catch (error) {
-         if (error.response?.status === 404) {
-      // ยังไม่มีข้อมูล ไม่ถือว่า Error
-      setFormData2(null);
-      return;
-    }
+      if (error.response?.status === 404) {
+        // ยังไม่มีข้อมูล ไม่ถือว่า Error
+        setFormData2(null);
+        return;
+      }
       console.error(`Error fetching user data: ${error.message}`);
       navigate("/missing");
     }
@@ -281,7 +347,10 @@ const Complaint = ({ Mode }) => {
 
   const FetchOccurranceById3 = async (id) => {
     try {
-      const response = await axios.get(`${apiUrl}/complaintresponse/${id}`, config);
+      const response = await axios.get(
+        `${apiUrl}/complaintresponse/${id}`,
+        config,
+      );
 
       if (response.status === 200 || response.status === 201) {
         setFormData3({
@@ -369,11 +438,11 @@ const Complaint = ({ Mode }) => {
         }
       }
     } catch (error) {
-          if (error.response?.status === 404) {
-      // ยังไม่มีข้อมูล ไม่ถือว่า Error
-      setFormData3(null);
-      return;
-    }
+      if (error.response?.status === 404) {
+        // ยังไม่มีข้อมูล ไม่ถือว่า Error
+        setFormData3(null);
+        return;
+      }
       console.error(`Error fetching user data: ${error.message}`);
       navigate("/missing");
     }
@@ -381,12 +450,15 @@ const Complaint = ({ Mode }) => {
 
   const FetchOccurranceById4 = async (id) => {
     try {
-      const response = await axios.get(`${apiUrl}/summarycomplaint/${id}`, config);
-   
-if (!response.data) {
-  setFormData4(null);
-  return;
-}
+      const response = await axios.get(
+        `${apiUrl}/summarycomplaint/${id}`,
+        config,
+      );
+
+      if (!response.data) {
+        setFormData4(null);
+        return;
+      }
       if (response.status === 200 || response.status === 201) {
         setFormData4({
           ...response.data,
@@ -479,10 +551,10 @@ if (!response.data) {
       }
     } catch (error) {
       if (error.response?.status === 404) {
-      // ยังไม่มีข้อมูล ไม่ถือว่า Error
-      setFormData4(null);
-      return;
-    }
+        // ยังไม่มีข้อมูล ไม่ถือว่า Error
+        setFormData4(null);
+        return;
+      }
 
       console.error(`Error fetching user data: ${error.message}`);
       navigate("/missing");
@@ -490,7 +562,10 @@ if (!response.data) {
   };
   const FetchOccurranceById = async (id) => {
     try {
-      const response = await axios.get(`${apiUrl}/riskManagement/${id}`, config);
+      const response = await axios.get(
+        `${apiUrl}/riskManagement/${id}`,
+        config,
+      );
 
       if (response.status === 200 || response.status === 201) {
         setFormData({
@@ -601,11 +676,11 @@ if (!response.data) {
         });
       }
     } catch (error) {
-        if (error.response?.status === 404) {
-      // ยังไม่มีข้อมูล ไม่ถือว่า Error
-      setFormData(null);
-      return;
-    }
+      if (error.response?.status === 404) {
+        // ยังไม่มีข้อมูล ไม่ถือว่า Error
+        setFormData(null);
+        return;
+      }
 
       console.error(`Error fetching user data: ${error.message}`);
       navigate("/missing");
@@ -705,65 +780,63 @@ if (!response.data) {
       handleScrollToTop();
     }
   };
-useEffect(() => {
-  const reportId = location.state?.reportid || id;
+  useEffect(() => {
+    const reportId = location.state?.reportid || id;
 
-  if (!reportId) {
-    navigate("../../home");
-    return;
-  }
+    if (!reportId) {
+      navigate("../../home");
+      return;
+    }
 
-  FetchPerson(reportId);
+    FetchPerson(reportId);
 
-  if (reportId && Mode === "Edit") {
-    FetchOccurranceById(reportId);
-  }
-}, [location.state, id]);
-
-useEffect(() => {
-  const reportId = location.state?.reportid || id;
-
-  if (!reportId) {
-    navigate("../../home");
-    return;
-  }
-
-  setReportid(reportId);
-
-  if (Mode === "Add") {
-    setAccess(true);
-    setFormData({
-      ...TempFormData,
-      userreport: UserData.userid,
-      requestby:
-        UserData?.title + " " + UserData?.name + " " + UserData?.lastname,
-      pct: "ไม่ระบุ",
-      gender: "M",
-      reportdate: new Date(),
-      complaintdate: new Date(),
-      type: "0",
-      reportidWhere: reportId,
-      reporttype: "0",
-      aff: UserData.affiliation,
-      faction: UserData.faction,
-      dep: UserData.dep,
-      createby: UserData.userid,
-    });
-  } else {
-    setEditFormData({ id: parseInt(id, 10) });
-  }
-}, []);
+    if (reportId && Mode === "Edit") {
+      FetchOccurranceById(reportId);
+    }
+  }, [location.state, id]);
 
   useEffect(() => {
-   
+    const reportId = location.state?.reportid || id;
+
+    if (!reportId) {
+      navigate("../../home");
+      return;
+    }
+
+    setReportid(reportId);
+
+    if (Mode === "Add") {
+      setAccess(true);
+      setFormData({
+        ...TempFormData,
+        userreport: UserData.userid,
+        requestby:
+          UserData?.title + " " + UserData?.name + " " + UserData?.lastname,
+        pct: "ไม่ระบุ",
+        gender: "M",
+        reportdate: new Date(),
+        complaintdate: new Date(),
+        type: "0",
+        reportidWhere: reportId,
+        reporttype: "0",
+        aff: UserData.affiliation,
+        faction: UserData.faction,
+        dep: UserData.dep,
+        createby: UserData.userid,
+      });
+    } else {
+      setEditFormData({ id: parseInt(id, 10) });
+    }
+  }, []);
+
+  useEffect(() => {
     if (reportid) {
-  Promise.allSettled([
-    FetchOccurranceById2(reportid),
-    FetchOccurranceById3(reportid),
-    FetchOccurranceById(reportid),
-    FetchOccurranceById4(reportid),
-  ]);
-    
+      Promise.allSettled([
+        FetchOccurranceById2(reportid),
+        FetchOccurranceById3(reportid),
+        FetchOccurranceById(reportid),
+        FetchOccurranceById4(reportid),
+      ]);
     }
   }, [reportid]);
 
@@ -921,314 +994,88 @@ useEffect(() => {
     "utility",
   ];
 
-  const handleSubmit = async (Mode) => {
-    if (!formData.deptrelate || formData.deptrelate.length === 0) {
-      setErrors((prev) => ({ ...prev, deptrelate: true }));
+const handleSubmit = async () => {
+  try {
+    setCompleteSubmitting(true);
 
-      const el = inputRefs.current.deptrelate;
-      if (el) {
-        el.focus();
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-      return;
-    }
+    const newRisk = Number(risk) === 4 ? 3 : 4;
 
-    const missingKeys = keydata.filter(({ key }) => {
-      if (key === "deptrelate") {
-        return !(formData[key] && formData[key].length);
-      } else if (key === "complaintdate") {
-        const date = new Date(formData[key]);
-        return !formData[key] || isNaN(date.getTime()); // Check if date is valid
-      } else {
-        return !formData[key] || formData[key] === ""; // Ensure it's not empty
-      }
-    });
-    const totalLength = keysToCheck.reduce((sum, key) => {
-      if (Array.isArray(formData[key])) {
-        return sum + formData[key].length;
-      }
-      return sum;
-    }, 0);
-    if (Mode !== "Draft") {
-      setAlertBorder(missingKeys);
-    }
-    if (missingKeys.length === 0 || Mode === "Draft") {
-      // let submitFormData;
-      if (totalLength > 0 || Mode === "Draft") {
-        // submitFormData = {
-        //   ...formData,
-        //   deptrelate: JSON.stringify(formData.deptrelate),
-        //   equipment: JSON.stringify(formData.equipment),
-        //   management: JSON.stringify(formData.management),
-        //   patientcare: JSON.stringify(formData.patientcare),
-        //   patientsupport: JSON.stringify(formData.patientsupport),
-        //   safety: JSON.stringify(formData.safety),
-        //   service: JSON.stringify(formData.service),
-        //   utility: JSON.stringify(formData.utility),
-        //   complaintdate: TimeConverter(formData.complaintdate, 7),
-        //   reportdate: TimeConverter(formData.reportdate, 7),
-        //   formstatus: "0",
-        // };
+    const response = await axios.put(
+      `${apiUrl}/riskManagement/updateRisk/${reportid}`,
+      {
+        risk: newRisk,
+        remark: completeRemark,
+      },
+      config
+    );
 
-        const submitFormData = new FormData();
-        Object.keys(formData).forEach((key) => {
-          if (formData[key] !== undefined && formData[key] !== null) {
-            // Exclude complaintdate and reportdate
-            if (key !== "complaintdate" && key !== "reportdate") {
-              // Convert arrays/objects to JSON string before appending
-              if (typeof formData[key] === "object") {
-                submitFormData.append(key, JSON.stringify(formData[key]));
-              } else {
-                submitFormData.append(key, formData[key]);
-              }
-            }
-          }
-        });
-        submitFormData.append(
-          "complaintdate",
-          TimeConverter(formData.complaintdate, 7),
-        );
-        submitFormData.append(
-          "reportdate",
-          TimeConverter(formData.reportdate, 7),
-        );
-        if (attachData.fileImage) {
-          submitFormData.append("files", attachData.fileImage);
-        }
-        if (attachData.filePDF) {
-          submitFormData.append("files", attachData.filePDF);
-        }
-        submitFormData.append("formstatus", "0");
+    if (response.status === 200) {
+      setRisk(newRisk);
 
-        // submitFormData.append("date", date);
-        submitFormData.append("manager", checkbox["manager"]);
-        submitFormData.append("quality", checkbox["quality"]);
-        submitFormData.append("nurse", checkbox["nurse"]);
-        submitFormData.append("administer", checkbox["administer"]);
-        submitFormData.append("operation", checkbox["operation"]);
-        submitFormData.append("director", checkbox["director"]);
-        submitFormData.append("doctor", checkbox["doctor"]);
-        submitFormData.append("compensation", checkbox["compensation"]);
+      setFormData2((prev) => ({
+        ...prev,
+        risk: newRisk,
+        remark: completeRemark,
+      }));
 
-        try {
-          const response = await axios.post(
-            `${apiUrl}/riskManagement`,
-            submitFormData,
-            { ...config },
-          );
-          const responseStatus = response.status;
+      setCompleteDialogOpen(false);
 
-          if (responseStatus === 200 || responseStatus === 201) {
-            navigate("/riskmanagement");
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      } else {
-        setStage(1);
-        setOccStage(0);
-        // setAlertText("ไม่สามารถบันทึกข้อมูลได้ กรุณาเลือกอย่างน้อย 1 หัวข้อ");
-        showAlert(
-          "กรุณาเลือกหัวข้อระบบงานที่เกี่ยวข้องกับเหตุการณ์ที่เกิดขึ้น อย่างน้อย 1 หัวข้อ",
-          "ไม่สามารถบันทึกข้อมูลได้",
-          "error",
-        );
-        console.log("ไม่สามารถบันทึกข้อมูลได้ กรุณาเลือกอย่างน้อย 1 หัวข้อ");
-        // setAlert(true);
-        scrollToSection("ListSelect");
-      }
-    } else {
-      setStage(missingKeys[0].location);
-      // setAlertText("ไม่สามารถบันทึกข้อมูลได้ โปรดระบุ '" + missingKeys[0].name + "'");
+      // ❌ อย่าล้าง completeRemark ตรงนี้
+      // setCompleteRemark("");
+
       showAlert(
-        "โปรดระบุ '" + missingKeys[0].name + "'",
-        "ไม่สามารถบันทึกข้อมูลได้",
-        "error",
+        newRisk === 4
+          ? "ยืนยันคำร้องเสร็จสมบูรณ์แล้ว"
+          : "เปิดคำร้องกลับมาแก้ไขแล้ว",
+        "success"
       );
-      console.log(
-        "Some keys are missing.Cannot submit form data.",
-        missingKeys[0].key,
-      );
-      setAlert(true);
-      scrollToSection(missingKeys[0].key);
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
     }
-  };
+  } catch (error) {
+    console.error("Update Risk Error:", error);
 
-  const handleShow = async () => {
-    setShow(!show);
-  };
-  const handleShow2 = async () => {
-    setShow2(!show2);
-  };
-  const handleShow4 = async () => {
-    setShow4(!show4);
-  };
+    showAlert(
+      error.response?.data?.message ||
+        "ไม่สามารถดำเนินการได้",
+      "error"
+    );
+  } finally {
+    setCompleteSubmitting(false);
+  }
+};
+const handleSubmitEdit = async (Mode) => {
+  try {
+    const response = await axios.put(
+      `${apiUrl}/riskManagement/updateRisk/${reportid}`,
+      {
+        risk: 3,
+      },
+      config,
+    );
 
-  const handleShow3 = async () => {
-    setShow3(!show3);
-  };
+    if (response.status === 200) {
+      showAlert("เปลี่ยนสถานะกลับมาเป็นกำลังดำเนินการแล้ว", "success");
 
-  const handleSubmitEdit = async (Mode) => {
-    if (!formData.deptrelate || formData.deptrelate.length === 0) {
-      setErrors((prev) => ({ ...prev, deptrelate: true }));
+      setRisk(3);
 
-      const el = inputRefs.current.deptrelate;
-      if (el) {
-        el.focus();
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-      return;
+      setFormData2((prev) => ({
+        ...prev,
+        risk: 3,
+      }));
     }
-    const missingKeys = keydata.filter(({ key }) => {
-      if (key === "deptrelate") {
-        return !(formData[key] && formData[key].length);
-      } else if (key === "complaintdate") {
-        const date = new Date(formData[key]);
-        return !formData[key] || isNaN(date.getTime()); // Check if date is valid
-      } else {
-        return !formData[key] || formData[key] === ""; // Ensure it's not empty
-      }
-    });
-    const totalLength = keysToCheck.reduce((sum, key) => {
-      if (Array.isArray(formData[key])) {
-        return sum + formData[key].length;
-      }
-      return sum;
-    }, 0);
-    if (Mode !== "Draft") {
-      setAlertBorder(missingKeys);
-    }
-    if (missingKeys.length === 0 || Mode === "Draft") {
-      // let submitEditFormData;
-      if (totalLength > 0 || Mode === "Draft") {
-        // submitEditFormData = {
-        //   ...EditFormData,
-        //   deptrelate: JSON.stringify(formData.deptrelate),
-        //   equipment: JSON.stringify(formData.equipment),
-        //   management: JSON.stringify(formData.management),
-        //   patientcare: JSON.stringify(formData.patientcare),
-        //   patientsupport: JSON.stringify(formData.patientsupport),
-        //   safety: JSON.stringify(formData.safety),
-        //   service: JSON.stringify(formData.service),
-        //   utility: JSON.stringify(formData.utility),
-        //   updateby: UserData.userid,
-        // };
-        // if (Mode === "Draft") {
-        //   submitEditFormData = {
-        //     ...submitEditFormData,
-        //     formstatus: "0",
-        //   };
-        // }
-        // if (Mode === "Submit") {
-        //   if (formData.formstatus === "0") {
-        //     submitEditFormData = {
-        //       ...submitEditFormData,
-        //       formstatus: "1",
-        //     };
-        //   }
-        // }
-        // console.log("submitEditFormData", submitEditFormData);
-        const submitEditFormData = new FormData();
-        Object.keys(formData).forEach((key) => {
-          if (formData[key] !== undefined && formData[key] !== null) {
-            // Exclude complaintdate and reportdate
-            if (
-              key !== "updateby" &&
-              key !== "complaintdate" &&
-              key !== "reportdate" &&
-              key != "formstatus"
-            ) {
-              // Convert arrays/objects to JSON string before appending
-              if (typeof formData[key] === "object") {
-                submitEditFormData.append(key, JSON.stringify(formData[key]));
-              } else {
-                submitEditFormData.append(key, formData[key]);
-              }
-            }
-          }
-        });
-        submitEditFormData.append("updateby", UserData.userid);
-        submitEditFormData.append(
-          "complaintdate",
-          TimeConverter(formData.complaintdate, 7),
-        );
-        submitEditFormData.append(
-          "reportdate",
-          TimeConverter(formData.reportdate, 7),
-        );
-        if (attachData.fileImage) {
-          submitEditFormData.append("files", attachData.fileImage);
-        }
-        if (attachData.filePDF) {
-          submitEditFormData.append("files", attachData.filePDF);
-        }
-        if (Mode === "Draft") {
-          submitEditFormData.append("formstatus", "0");
-        }
-        if (Mode === "Submit") {
-          if (formData.formstatus === "0") {
-            submitEditFormData.append("formstatus", "1");
-          }
-        }
-        // submitEditFormData.set("date", date);
-        submitEditFormData.set("manager", checkbox["manager"]);
-        submitEditFormData.set("quality", checkbox["quality"]);
-        submitEditFormData.set("nurse", checkbox["nurse"]);
-        submitEditFormData.set("administer", checkbox["administer"]);
-        submitEditFormData.set("operation", checkbox["operation"]);
-        submitEditFormData.set("director", checkbox["director"]);
-        submitEditFormData.set("doctor", checkbox["doctor"]);
-        submitEditFormData.set("compensation", checkbox["compensation"]);
-        try {
-          const response = await axios.post(
-            `${apiUrl}/riskManagement/updateOccurrence`,
-            submitEditFormData,
-            { ...config },
-          );
-          const responseStatus = response.status;
+  } catch (error) {
+    console.error("Update Risk Error:", error);
 
-          if (responseStatus === 200 || responseStatus === 201) {
-            navigate("/riskmanagement");
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      } else {
-        setStage(1);
-        setOccStage(0);
-        // setAlertText("ไม่สามารถบันทึกข้อมูลได้ กรุณาเลือกอย่างน้อย 1 หัวข้อ");
-        showAlert(
-          "กรุณาเลือกหัวข้อระบบงานที่เกี่ยวข้องกับเหตุการณ์ที่เกิดขึ้น อย่างน้อย 1 หัวข้อ",
-          "ไม่สามารถบันทึกข้อมูลได้",
-          "error",
-        );
-        console.log("ไม่สามารถบันทึกข้อมูลได้ กรุณาเลือกอย่างน้อย 1 หัวข้อ");
-        // setAlert(true);
-        scrollToSection("ListSelect");
-      }
-    } else {
-      setStage(missingKeys[0].location);
-      // setAlertText("ไม่สามารถบันทึกข้อมูลได้ โปรดระบุ '" + missingKeys[0].name + "'");
-      showAlert(
-        "โปรดระบุ '" + missingKeys[0].name + "'",
-        "ไม่สามารถบันทึกข้อมูลได้",
-        "error",
-      );
-      console.log(
-        "Some keys are missing.Cannot submit form data.",
-        missingKeys[0].key,
-      );
-      // setAlert(true);
-      scrollToSection(missingKeys[0].key);
-    }
-  };
-
+    showAlert(
+      error.response?.data?.message || "ไม่สามารถเปลี่ยนสถานะได้",
+      "error",
+    );
+  }
+};
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -1243,182 +1090,1042 @@ useEffect(() => {
     }
   };
 
+  const steps = [
+    {
+      id: 0,
+      number: "01",
+      title: "ร้องเรียน",
+      subtitle: "Complaint",
+      icon: BadgeAlert,
+      color: "#DC2626",
+      lightColor: "#FFF1F1",
+      borderColor: "#991B1B",
+      data: formData2,
+    },
+    {
+      id: 1,
+      number: "02",
+      title: "ส่งหน่วยงาน",
+      subtitle: "Admin Review",
+      icon: ShieldCheck,
+      color: "#475569",
+      lightColor: "#F4F6F8",
+      borderColor: "#475569",
+      data: formData,
+    },
+    {
+      id: 2,
+      number: "03",
+      title: "ตอบกลับผู้ร้องเรียน",
+      subtitle: "Response",
+      icon: Send,
+      color: "#0284C7",
+      lightColor: "#EFF8FD",
+      borderColor: "#075985",
+      data: formData3,
+    },
+    {
+      id: 3,
+      number: "04",
+      title: "สรุปผลการวิเคราะห์",
+      subtitle: "Summary",
+      icon: ChartColumn,
+      color: "#16A34A",
+      lightColor: "#F0FAF4",
+      borderColor: "#166534",
+      data: formData4,
+    },
+  ];
+
+  const completedSteps = steps.filter(
+    (step) => step.data && Object.keys(step.data).length > 0,
+  ).length;
+
+  const allStepsCompleted = completedSteps === 4;
+const isReportClosed = Number(risk) === 4;
+const isNotComplaint = Number(formData2?.status) === 0;
   return (
     <>
-      
+      <style>
+        {`
+        @keyframes workflowPulse {
+          0% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 var(--workflow-light);
+          }
+
+          50% {
+            transform: scale(1.06);
+            box-shadow: 0 0 0 8px var(--workflow-glow);
+          }
+
+          100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 var(--workflow-light);
+          }
+        }
+      `}
+      </style>
       <ComplaintStyle>
+        {/* ================= STEP TRACKER ================= */}
         <div
-          className="px-4 py-3 "
           style={{
-            background: "#FEF9C3",
-            border: "2px solid #262b20ff",
+            margin: "16px 20px",
+            padding: "20px 28px",
+            background: "#FFFFFF",
+            border: "1px solid #E5E7EB",
+            borderRadius: "16px",
+            boxShadow: "0 8px 28px rgba(30,35,30,.06)",
             position: "relative",
-            minHeight: "72px",
-            display: "flex",
-            alignItems: "center",
           }}
         >
+          {/* =========================
+      BACK BUTTON
+  ========================= */}
           <IconButton
             onClick={() => navigate(-1)}
+            size="small"
             sx={{
               position: "absolute",
-              left: 16,
-              top: "50%",
-              transform: "translateY(-50%)",
-              backgroundColor: "#e6f4ea",
+              left: 18,
+              top: 18,
+              color: "#64748B",
+              border: "1px solid #E2E8F0",
+              background: "#FFFFFF",
               "&:hover": {
-                backgroundColor: "#166534",
-                color: "#fff",
+                color: "#A16207",
+                borderColor: "#A16207",
+                background: "#FFFBEB",
               },
             }}
           >
-            <ArrowBackIcon />
+            <ArrowBackIcon fontSize="small" />
           </IconButton>
+
+          {/* =========================
+      DOCUMENT NUMBER
+  ========================= */}
           <div
             style={{
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-              textAlign: "center",
-              whiteSpace: "nowrap",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "28px",
+              paddingTop: "2px",
             }}
           >
-            <h2 style={{ margin: 0, fontWeight: 600 }}>
-              <AssignmentIcon
-                sx={{
-                  fontSize: 40, // 🔥 ปรับขนาด (px)
-                  color: "#166534", // 🔥 เปลี่ยนสี
-                }}
-              />{" "}
-              หมายเลขเอกสาร : {reportid}
-            </h2>
-          </div>
+            <AssignmentIcon
+              sx={{
+                fontSize: 22,
+                color: "#A16207",
+              }}
+            />
 
-          {/* ===== Right Actions ===== */}
-          <div
+            <span
+              style={{
+                fontSize: "13px",
+                color: "#64748B",
+                fontWeight: 600,
+              }}
+            >
+              หมายเลขเอกสาร :
+            </span>
+
+          <span 
+  style={{ 
+    fontSize: "15px", 
+    color: "#1F2937", 
+    fontWeight: 800, 
+    letterSpacing: "0.6px", 
+  }} 
+> 
+  {reportid} 
+</span>
+
+{isReportClosed && (
+  <span
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "5px",
+      marginLeft: "6px",
+      padding: "4px 10px",
+      borderRadius: "999px",
+      background: "#F3F4F6",
+      border: "1px solid #D1D5DB",
+      color: "#4B5563",
+      fontSize: "10px",
+      fontWeight: 800,
+    }}
+  >
+    <CheckCircle2 size={13} />
+    ปิดรายงานแล้ว
+  </span>
+)}
+          </div>
+ <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "7px",
+            marginBottom: "18px",
+            color: "#64748B",
+            fontSize: "13px",
+            fontWeight: 500,
+          }}
+        >
+          <span
             style={{
-              marginLeft: "auto",
-              display: "flex",
+              display: "inline-flex",
               alignItems: "center",
-              gap: 12,
+              justifyContent: "center",
+              width: "22px",
+              height: "22px",
+              borderRadius: "50%",
+              background: "#F8FAFC",
+              border: "1px solid #E2E8F0",
+              fontSize: "13px",
             }}
-          ></div>
+          >
+            👆
+          </span>
+
+          <span>คลิกที่รูปขั้นตอนเพื่อดูรายละเอียด</span>
         </div>
 
-        <Box className="MainContainer" style={{ background: "#F5F5F5" }}>
-          {Stage === 1 && (
-            <ComplaintViewStyle>
-              {formData2 && Object.keys(formData2).length > 0 && (
-                <GeneralInfo2
-                  Mode={Mode}
-                  array={array}
-                  data={formData2}
-                  disable={disable}
-                  show={show}
-                  setDataFunction={handleDataChange}
-                  setSingleDataFunction={handleDataChangeSingle}
-                  missingKeys={AlertBorder}
-                  setCheckBoxFunction={handleCheckChange}
-                  FormType="Occ"
-                  handleShow={handleShow}
-                  handleSetBoard={handleSetBoard}
-                  handleSetDate={handleSetDate}
-                  showUrgent={showUrgent}
-                  showAppeal={showAppeal}
-                  handleDateChange={handleDateChange}
-                  handleDataChangeCheckbox={handleDataChangeCheckbox}
-                  handleDataChangeCheckbox2={handleDataChangeCheckbox2}
-                  
-                />
-              )}
+          {/* =========================
+      WORKFLOW STEPPER
+  ========================= */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              width: "100%",
+            }}
+          >
+            {steps.map((step, index) => {
+              const Icon = step.icon;
 
-              {formData && Object.keys(formData).length > 0 && (
-                <GeneralInfo
-                  Mode={Mode}
-                  data={formData}
-                  setDataFunction={handleDataChange}
-                  setSingleDataFunction={handleDataChangeSingle}
-                  missingKeys={AlertBorder}
-                  setCheckBoxFunction={handleCheckChange}
-                  FormType="Occ"
-                  handleSetBoard={handleSetBoard}
-                  handleSetDate={handleSetDate}
-                  handleDateChange={handleDateChange}
-                  handleDataChangeCheckbox={handleDataChangeCheckbox}
-                  handleDataChangeCheckbox2={handleDataChangeCheckbox2}
-                  
-                  checkbox={checkbox}
-                  setErrors={setErrors}
-                  handleShow={handleShow3}
-                  show={show3}
-                  errors={errors}
-                  inputRefs={inputRefs}
-                />
-              )}
+              const isCompleted =
+                step.data && Object.keys(step.data).length > 0;
 
-              {formData3 && Object.keys(formData3).length > 0 && (
-                <GeneralInfo3
-                  Mode={Mode}
-                  items={array}
-                  data={formData3}
-                  setDataFunction={handleDataChange}
-                  setSingleDataFunction={handleDataChangeSingle}
-                  missingKeys={AlertBorder}
-                  setCheckBoxFunction={handleCheckChange}
-                  FormType="Occ"
-                  disable={disable}
-                  handleSetBoard={handleSetBoard}
-                  handleSetDate={handleSetDate}
-                  handleDateChange={handleDateChange}
-                  handleDataChangeCheckbox={handleDataChangeCheckbox}
-                  handleDataChangeCheckbox2={handleDataChangeCheckbox2}
-                  setErrors={setErrors}
-                  show={show2}
-                  handleShow={handleShow2}
-                  errors={errors}
-                  inputRefs={inputRefs}
-                />
-              )}
+              const isActive = activeStep === step.id;
 
-              {formData4 && Object.keys(formData4).length > 0 && (
-                <GeneralInfo4
-                  Mode={Mode}
-                  items={array}
-                  data={formData4}
-                  setDataFunction={handleDataChange}
-                  setSingleDataFunction={handleDataChangeSingle}
-                  missingKeys={AlertBorder}
-                  setCheckBoxFunction={handleCheckChange}
-                  FormType="Occ"
-                  disable={disable}
-                  handleSetBoard={handleSetBoard}
-                  handleSetDate={handleSetDate}
-                  handleDateChange={handleDateChange}
-                  handleDataChangeCheckbox={handleDataChangeCheckbox}
-                  handleDataChangeCheckbox2={handleDataChangeCheckbox2}
-                  checkbox={checkbox4}
-                  show={show4}
-                  handleShow={handleShow4}
-                  setErrors={setErrors}
-                  errors={errors}
-                  inputRefs={inputRefs}
-                />
-              )}
+              const nextStep = steps[index + 1];
 
-              <Divider variant="middle" flexItem sx={{ m: 1 }} />
-            </ComplaintViewStyle>
-          )}
+              const nextCompleted =
+                nextStep &&
+                nextStep.data &&
+                Object.keys(nextStep.data).length > 0;
 
-          {Mode === "Show" &&
-            (isAdmin || isEXEC) &&
-            Stage === 1 &&
-            ["2", "5"].includes(formData.formstatus) && (
-              <>
-                <Divider variant="middle" flexItem sx={{ m: 1 }} />
-                <ReportComment data={formData} />
-              </>
+              return (
+                <React.Fragment key={step.id}>
+                  {/* STEP */}
+                  <div
+                    onClick={() => {
+                      if (isCompleted) {
+                        setActiveStep(step.id);
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      cursor: isCompleted ? "pointer" : "default",
+                      opacity: isCompleted ? 1 : 0.55,
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {/* ICON CIRCLE */}
+                    <div
+                      style={{
+                        width: "52px",
+                        height: "52px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+
+                        background: isCompleted ? step.color : "#F8FAFC",
+
+                        border: `2px solid ${
+                          isCompleted ? step.borderColor : "#CBD5E1"
+                        }`,
+
+                        boxShadow: isActive
+                          ? `0 0 0 6px ${step.lightColor}`
+                          : "none",
+
+                        animation: isActive
+                          ? "workflowPulse 1.8s ease-in-out infinite"
+                          : "none",
+
+                        "--workflow-light": step.lightColor,
+                        "--workflow-glow": `${step.color}33`,
+
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <Icon
+                        size={23}
+                        strokeWidth={2.2}
+                        color={isCompleted ? "#FFFFFF" : "#94A3B8"}
+                      />
+                    </div>
+
+                    {/* STEP NUMBER */}
+                    <div
+                      style={{
+                        marginTop: "9px",
+                        fontSize: "10px",
+                        fontWeight: 800,
+                        color: isCompleted ? step.color : "#94A3B8",
+                        letterSpacing: "1px",
+                      }}
+                    >
+                      {step.number}
+                    </div>
+
+                    {/* TITLE */}
+                    <div
+                      style={{
+                        marginTop: "3px",
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        color: isCompleted ? "#1F2937" : "#94A3B8",
+                        textAlign: "center",
+                      }}
+                    >
+                      {step.title}
+                    </div>
+
+                    {/* SUBTITLE */}
+                    <div
+                      style={{
+                        marginTop: "2px",
+                        fontSize: "10px",
+                        color: "#94A3B8",
+                        textAlign: "center",
+                      }}
+                    >
+                      {step.subtitle}
+                    </div>
+
+                    {/* STATUS */}
+                    <div
+                      style={{
+                        marginTop: "8px",
+                        padding: "3px 9px",
+                        borderRadius: "999px",
+                        fontSize: "10px",
+                        fontWeight: 700,
+
+                        color: isCompleted ? step.color : "#94A3B8",
+
+                        background: isCompleted ? step.lightColor : "#F8FAFC",
+
+                        border: `1px solid ${
+                          isCompleted ? step.borderColor : "#E2E8F0"
+                        }`,
+                      }}
+                    >
+                      {isCompleted ? "เสร็จแล้ว" : "ยังไม่มีข้อมูล"}
+                    </div>
+                  </div>
+
+                  {/* CONNECTOR */}
+                  {index < steps.length - 1 && (
+                    <div
+                      style={{
+                        flex: "0 0 10%",
+                        height: "2px",
+                        marginTop: "25px",
+                        background:
+                          isCompleted && nextCompleted
+                            ? nextStep.borderColor
+                            : "#E2E8F0",
+                        transition: "all 0.3s ease",
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+     
+{/* =========================
+    REPORT STATUS
+========================= */}
+<div
+  style={{
+    marginTop: "22px",
+    paddingTop: "15px",
+    borderTop: "1px solid #F1F5F9",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "10px",
+  }}
+>
+ {/* STATUS */}
+<div
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "9px",
+    padding: isNotComplaint
+      ? "9px 18px"
+      : isReportClosed
+        ? "9px 18px"
+        : "7px 16px",
+    borderRadius: "999px",
+
+    background: isNotComplaint
+      ? "#FFF7ED"
+      : isReportClosed
+        ? "#F3F4F6"
+        : allStepsCompleted
+          ? "#F0FAF4"
+          : "#F8FAFC",
+
+    border: `1px solid ${
+      isNotComplaint
+        ? "#FDBA74"
+        : isReportClosed
+          ? "#9CA3AF"
+          : allStepsCompleted
+            ? "#16A34A"
+            : "#CBD5E1"
+    }`,
+
+    color: isNotComplaint
+      ? "#C2410C"
+      : isReportClosed
+        ? "#4B5563"
+        : allStepsCompleted
+          ? "#166534"
+          : "#64748B",
+
+    fontSize: "12px",
+    fontWeight: 700,
+  }}
+>
+  {isNotComplaint ? (
+    <CircleX size={16} />
+  ) : (
+    <CheckCircle2 size={isReportClosed ? 17 : 16} />
+  )}
+
+  {isNotComplaint
+    ? "รายการนี้ไม่ใช่ข้อร้องเรียน"
+    : isReportClosed
+      ? "รายงานนี้ปิดแล้ว"
+      : allStepsCompleted
+        ? "ดำเนินการครบทั้ง 4 ขั้นตอนแล้ว"
+        : `ดำเนินการแล้ว ${completedSteps} จาก 4 ขั้นตอน`}
+</div>
+
+  {/* CLOSE REMARK */}
+{/* CLOSE REMARK */}
+{isReportClosed && completeRemark?.trim() && (
+  <div
+    style={{
+      width: "min(100%, 680px)",
+      boxSizing: "border-box",
+      marginTop: "2px",
+      padding: "14px 16px",
+      background: "#FFFFFF",
+      border: "1px solid #E5E7EB",
+      borderLeft: "3px solid #9CA3AF",
+      borderRadius: "8px",
+      textAlign: "left",
+      boxShadow: "0 2px 8px rgba(15, 23, 42, 0.03)",
+    }}
+  >
+    {/* HEADER */}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "9px",
+        marginBottom: "9px",
+      }}
+    >
+      <div
+        style={{
+          width: "26px",
+          height: "26px",
+          borderRadius: "7px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#F3F4F6",
+          border: "1px solid #E5E7EB",
+          color: "#6B7280",
+          fontSize: "12px",
+          fontWeight: 800,
+        }}
+      >
+        ✓
+      </div>
+
+      <div>
+        <div
+          style={{
+            fontFamily: "Mali, sans-serif",
+            fontSize: "12px",
+            fontWeight: 800,
+            color: "#4B5563",
+            lineHeight: 1.3,
+          }}
+        >
+          บันทึกการปิดรายงาน
+        </div>
+
+        <div
+          style={{
+            marginTop: "2px",
+            fontFamily: "Mali, sans-serif",
+            fontSize: "10px",
+            color: "#9CA3AF",
+            lineHeight: 1.4,
+          }}
+        >
+          ข้อความประกอบการยืนยันการดำเนินการ
+        </div>
+      </div>
+    </div>
+
+    {/* REMARK */}
+    <div
+      style={{
+        padding: "11px 13px",
+        background: "#F8FAFC",
+        borderRadius: "7px",
+        border: "1px solid #EEF0F2",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: "Mali, sans-serif",
+          fontSize: "13px",
+          lineHeight: 1.8,
+          color: "#374151",
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        {completeRemark}
+      </div>
+    </div>
+  </div>
+)}
+</div>
+
+        <div className="mt-3 complaint-detail-wrapper">
+  {Stage === 1 && (
+    <ComplaintViewStyle>
+      <div
+        className="complaint-detail-card"
+        style={{
+          "--step-color": steps[activeStep]?.color || "#64748B",
+          "--step-light":
+            steps[activeStep]?.lightColor || "#F8FAFC",
+        }}
+      >
+
+        {/* ================================
+            DETAIL HEADER
+        ================================= */}
+<div className="complaint-detail-top">
+
+  {/* STEP NUMBER */}
+  <div
+    className="complaint-step-number"
+    style={{
+      color:
+        steps[activeStep]?.color || "#64748B",
+
+      background:
+        steps[activeStep]?.lightColor || "#F8FAFC",
+
+      borderColor:
+        steps[activeStep]?.color || "#CBD5E1",
+    }}
+  >
+    {steps[activeStep]?.number || "01"}
+  </div>
+
+
+  {/* CENTER TITLE */}
+  <div className="complaint-detail-heading">
+
+    <div
+      className="complaint-detail-label"
+      style={{
+        color:
+          steps[activeStep]?.color || "#64748B",
+      }}
+    >
+      {activeStep === 0 && "COMPLAINT"}
+      {activeStep === 1 && "ADMIN REVIEW"}
+      {activeStep === 2 && "RESPONSE"}
+      {activeStep === 3 && "SUMMARY"}
+    </div>
+
+
+    <div className="complaint-detail-title">
+
+      {activeStep === 0 &&
+        "รายละเอียดข้อร้องเรียน"}
+
+      {activeStep === 1 &&
+        "รายละเอียดการตรวจสอบ"}
+
+      {activeStep === 2 &&
+        "รายละเอียดการตอบกลับ"}
+
+      {activeStep === 3 &&
+        "รายละเอียดสรุปผลการวิเคราะห์"}
+
+    </div>
+
+
+    <div className="complaint-detail-description">
+
+      {activeStep === 0 &&
+        "ข้อมูลและรายละเอียดที่ผู้ร้องเรียนแจ้งเข้าม"}
+
+      {activeStep === 1 &&
+        "รายละเอียดการพิจารณาและดำเนินการของหน่วยงาน"}
+
+      {activeStep === 2 &&
+        "รายละเอียดการตอบกลับและการสื่อสารกับผู้ร้องเรียน"}
+
+      {activeStep === 3 &&
+        "ผลการวิเคราะห์ สรุปประเด็น และผลการดำเนินการ"}
+
+    </div>
+
+  </div>
+
+
+  {/* RIGHT STATUS */}
+  <div
+    className="complaint-current-step"
+    style={{
+      color:
+        steps[activeStep]?.color || "#64748B",
+
+      background:
+        steps[activeStep]?.lightColor || "#F8FAFC",
+
+      borderColor:
+        steps[activeStep]?.color || "#CBD5E1",
+    }}
+  >
+
+    <span
+      className="complaint-current-dot"
+      style={{
+        background:
+          steps[activeStep]?.color || "#64748B",
+      }}
+    />
+
+    ขั้นตอนที่ {steps[activeStep]?.number || "01"}
+
+  </div>
+
+</div>
+
+
+        {/* ================================
+            ACCENT LINE
+        ================================= */}
+
+        <div
+          className="complaint-detail-accent"
+          style={{
+            background:
+              steps[activeStep]?.color || "#64748B",
+          }}
+        />
+
+
+        {/* ================================
+            CONTENT
+        ================================= */}
+
+        <div className="complaint-detail-content">
+
+          {/* =====================================================
+              STEP 01 — COMPLAINT
+          ===================================================== */}
+
+          {activeStep === 0 &&
+            formData2 &&
+            Object.keys(formData2).length > 0 && (
+              <GeneralInfo2
+                Mode={Mode}
+                array={array}
+                data={formData2}
+                disable={disable}
+                show={true}
+                setDataFunction={handleDataChange}
+                setSingleDataFunction={handleDataChangeSingle}
+                missingKeys={AlertBorder}
+                setCheckBoxFunction={handleCheckChange}
+                FormType="Occ"
+                handleShow={() => setActiveStep(0)}
+                handleSetBoard={handleSetBoard}
+                handleSetDate={handleSetDate}
+                showUrgent={showUrgent}
+                showAppeal={showAppeal}
+                handleDateChange={handleDateChange}
+                handleDataChangeCheckbox={handleDataChangeCheckbox}
+                handleDataChangeCheckbox2={handleDataChangeCheckbox2}
+              />
             )}
-        </Box>
+
+
+          {/* =====================================================
+              STEP 02 — ADMIN REVIEW
+          ===================================================== */}
+
+          {activeStep === 1 &&
+            formData &&
+            Object.keys(formData).length > 0 && (
+              <GeneralInfo
+                Mode={Mode}
+                data={formData}
+                setDataFunction={handleDataChange}
+                setSingleDataFunction={handleDataChangeSingle}
+                missingKeys={AlertBorder}
+                setCheckBoxFunction={handleCheckChange}
+                FormType="Occ"
+                handleSetBoard={handleSetBoard}
+                handleSetDate={handleSetDate}
+                handleDateChange={handleDateChange}
+                handleDataChangeCheckbox={handleDataChangeCheckbox}
+                handleDataChangeCheckbox2={handleDataChangeCheckbox2}
+                checkbox={checkbox}
+                setErrors={setErrors}
+                handleShow={() => setActiveStep(1)}
+                show={true}
+                errors={errors}
+                inputRefs={inputRefs}
+              />
+            )}
+
+
+          {/* =====================================================
+              STEP 03 — RESPONSE
+          ===================================================== */}
+
+          {activeStep === 2 &&
+            formData3 &&
+            Object.keys(formData3).length > 0 && (
+              <GeneralInfo3
+                Mode={Mode}
+                items={array}
+                data={formData3}
+                setDataFunction={handleDataChange}
+                setSingleDataFunction={handleDataChangeSingle}
+                missingKeys={AlertBorder}
+                setCheckBoxFunction={handleCheckChange}
+                FormType="Occ"
+                disable={disable}
+                handleSetBoard={handleSetBoard}
+                handleSetDate={handleSetDate}
+                handleDataChangeCheckbox={handleDataChangeCheckbox}
+                handleDataChangeCheckbox2={handleDataChangeCheckbox2}
+                setErrors={setErrors}
+                show={true}
+                handleShow={() => setActiveStep(2)}
+                errors={errors}
+                inputRefs={inputRefs}
+              />
+            )}
+
+
+          {/* =====================================================
+              STEP 04 — SUMMARY
+          ===================================================== */}
+
+          {activeStep === 3 &&
+            formData4 &&
+            Object.keys(formData4).length > 0 && (
+              <GeneralInfo4
+                Mode={Mode}
+                items={array}
+                data={formData4}
+                setDataFunction={handleDataChange}
+                setSingleDataFunction={handleDataChangeSingle}
+                missingKeys={AlertBorder}
+                setCheckBoxFunction={handleCheckChange}
+                FormType="Occ"
+                disable={disable}
+                handleSetBoard={handleSetBoard}
+                handleSetDate={handleSetDate}
+                handleDateChange={handleDateChange}
+                handleDataChangeCheckbox={handleDataChangeCheckbox}
+                handleDataChangeCheckbox2={handleDataChangeCheckbox2}
+                checkbox={checkbox4}
+                show={true}
+                handleShow={() => setActiveStep(3)}
+                setErrors={setErrors}
+                errors={errors}
+                inputRefs={inputRefs}
+              />
+            )}
+
+        </div>
+
+      </div>
+    </ComplaintViewStyle>
+  )}
+
+{(isAdmin || isEXEC) && Number(risk) >= 3 && (
+    
+  <div
+  style={{
+    marginTop: "28px",
+    padding: "20px 24px",
+    background: "#FFFBEB",
+    border: "1px solid #F3D58A",
+    borderRadius: "12px",
+    boxShadow: "0 3px 12px rgba(146, 103, 20, 0.06)",
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "20px",
+    }}
+  >
+    <div>
+      <div
+        style={{
+          fontSize: "15px",
+          fontWeight: 800,
+          color: "#7A5700",
+          marginBottom: "5px",
+        }}
+      >
+        การดำเนินการขั้นสุดท้าย
+      </div>
+
+      <div
+        style={{
+          fontSize: "13px",
+          color: "#6B7280",
+          lineHeight: 1.6,
+        }}
+      >
+        ตรวจสอบข้อมูลและรายละเอียดทั้งหมดเรียบร้อยแล้ว
+        <br />
+        กดยืนยันเพื่อระบุว่าการดำเนินการเสร็จสมบูรณ์
+      </div>
+    </div>
+
+    <div
+      style={{
+        flexShrink: 0,
+      }}
+    >
+ <Button
+  variant="contained"
+  onClick={() => setCompleteDialogOpen(true)}
+  disabled={completeSubmitting}
+  sx={{
+    fontFamily: "Mali, sans-serif",
+    textTransform: "none",
+    backgroundColor:
+      Number(risk) === 4
+        ? "#B45309"
+        : "#2F6516",
+    "&:hover": {
+      backgroundColor:
+        Number(risk) === 4
+          ? "#92400E"
+          : "#255314",
+    },
+  }}
+>
+  {completeSubmitting
+    ? "กำลังบันทึก..."
+    : Number(risk) === 4
+      ? "เปิดรายการกลับมาแก้ไข"
+      : "ยืนยันเสร็จสมบูรณ์"}
+</Button>
+    </div>
+  </div>
+</div>
+    )}
+
+
+ 
+</div>
+        </div>
+        <Dialog
+  open={completeDialogOpen}
+  onClose={() => {
+    if (!completeSubmitting) {
+      setCompleteDialogOpen(false);
+    }
+  }}
+  PaperProps={{
+    sx: {
+      borderRadius: "12px",
+      minWidth: {
+        xs: "90%",
+        sm: "420px",
+      },
+    },
+  }}
+>
+<DialogTitle
+  sx={{
+    fontFamily: "Mali, sans-serif",
+    fontSize: "18px",
+    fontWeight: 700,
+    color:
+      Number(risk) === 4
+        ? "#B45309"
+        : "#2F6516",
+  }}
+>
+  {Number(risk) === 4
+    ? "เปิดรายการกลับมาแก้ไข"
+    : "ยืนยันการดำเนินการ"}
+</DialogTitle>
+<DialogContent>
+  <DialogContentText
+    sx={{
+      fontFamily: "Mali, sans-serif",
+      fontSize: "14px",
+      lineHeight: 1.8,
+      color: "#4B5563",
+      mb: 2,
+    }}
+  >
+    {Number(risk) === 4
+      ? "ต้องการเปิดรายการนี้กลับมาเพื่อแก้ไขและดำเนินการต่อหรือไม่?"
+      : "ต้องการยืนยันว่าคำร้องนี้ดำเนินการเสร็จสมบูรณ์แล้วหรือไม่?"}
+  </DialogContentText>
+
+  {/* =========================
+      REMARK
+  ========================= */}
+  <Box>
+    <div
+      style={{
+        fontFamily: "Mali, sans-serif",
+        fontSize: "13px",
+        fontWeight: 700,
+        color: "#374151",
+        marginBottom: "7px",
+      }}
+    >
+      หมายเหตุ
+      <span
+        style={{
+          marginLeft: "6px",
+          fontSize: "11px",
+          fontWeight: 400,
+          color: "#9CA3AF",
+        }}
+      >
+        (ไม่บังคับ)
+      </span>
+    </div>
+
+    <textarea
+      value={completeRemark}
+      onChange={(e) => setCompleteRemark(e.target.value)}
+      placeholder={
+        Number(risk) === 4
+          ? "ระบุหมายเหตุการเปิดรายการกลับมาแก้ไข..."
+          : "ระบุหมายเหตุการดำเนินการ..."
+      }
+      disabled={completeSubmitting}
+      rows={4}
+      style={{
+        width: "100%",
+        boxSizing: "border-box",
+        resize: "vertical",
+        padding: "11px 13px",
+        borderRadius: "9px",
+        border: "1px solid #D1D5DB",
+        background: "#FFFFFF",
+        fontFamily: "Mali, sans-serif",
+        fontSize: "13px",
+        lineHeight: 1.7,
+        color: "#374151",
+        outline: "none",
+      }}
+    />
+  </Box>
+</DialogContent>
+
+  <DialogActions sx={{ px: 2.5, pb: 2 }}>
+    <Button
+      onClick={() => setCompleteDialogOpen(false)}
+      disabled={completeSubmitting}
+      sx={{
+        fontFamily: "Mali, sans-serif",
+        textTransform: "none",
+      }}
+    >
+      ยกเลิก
+    </Button>
+<Button 
+  variant="contained" 
+  onClick={handleSubmit}
+  disabled={completeSubmitting}
+  startIcon={<TaskAltOutlinedIcon />} 
+  sx={{ 
+    minWidth: "175px", 
+    height: "42px", 
+    px: 2.2, 
+    borderRadius: "9px", 
+    fontFamily: "Mali, sans-serif", 
+    fontSize: "14px", 
+    fontWeight: 700, 
+    textTransform: "none", 
+    color: "#FFFFFF", 
+    backgroundColor: 
+      Number(risk) === 4 ? "#B45309" : "#2F6516", 
+    border: 
+      Number(risk) === 4 
+        ? "1px solid #B45309" 
+        : "1px solid #2F6516", 
+    boxShadow: 
+      Number(risk) === 4 
+        ? "0 3px 8px rgba(180, 83, 9, 0.25)" 
+        : "0 3px 8px rgba(47, 101, 22, 0.25)", 
+    "&:hover": { 
+      backgroundColor: 
+        Number(risk) === 4 ? "#92400E" : "#255314", 
+    }, 
+  }} 
+>
+  {Number(risk) === 4 
+    ? "เปิดรายการกลับมาแก้ไข" 
+    : "ยืนยันเสร็จสมบูรณ์"} 
+</Button>
+  </DialogActions>
+</Dialog>
       </ComplaintStyle>
     </>
   );

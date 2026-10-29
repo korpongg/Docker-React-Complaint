@@ -55,7 +55,8 @@ app.use("/api/complaintresponse", require("./routes/api/complaintresponse"));
 app.use("/api/summarycomplaint", require("./routes/api/summarycomplaint"));
 app.use("/api/supervisor", require("./routes/api/supervisor"));
 app.use("/api/checksupervisor", require("./routes/api/checksupervisor"));
-
+const dashboardRoutes = require("./routes/api/dashboard");
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/filemanage", require("./routes/filemanage"));
 
 const { WebSocketServer } = require("ws");

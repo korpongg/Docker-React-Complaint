@@ -73,9 +73,9 @@ const GeneralInfo = ({
   handlePatientAn,
   setChangePerson,
   handlePatientDiagnosis,
-    setErrors,
-                errors,
-                inputRefs,
+  setErrors,
+  errors,
+  inputRefs,
 }) => {
   const [value, setValue] = useState(null);
   const [inputValue, setInputValue] = useState("");
@@ -93,208 +93,406 @@ const GeneralInfo = ({
     }
   }, []);
 
-  return (
-    <>
-    <div className="section-card">
-    <div className="section-header">
-    <GreenCircle />ตอบกลับผู้ร้องเรียน</div>
-  <div className="section-body">
-    <Container>
-      <Row className="align-items-center">
-        <RadioGroup
-          row
-          id="respond_radio"
-          name="respond_radio"
-          value={data?.respond_radio || "0"}
-          onChange={(e) => setDataFunction(e, "respond_radio")}
-        >
-          <FormControlLabel
-            disabled={Mode === "Show"}
-            value="0"
-            control={<Radio />}
-            label="ตอบกลับผู้ร้องเรียนแล้ว"
-          />
 
-          <FormControlLabel
-            disabled={Mode === "Show"}
-            value="1"
-            control={<Radio />}
-            label="ยังไม่ได้ตอบกลับผู้ร้องเรียน (ระบุสาเหตุ) : "
-          />
-
-          <Form.Control
-            disabled={disable || data?.respond_radio !== "1"}
-            value={data?.respond_text || ""}
-            onChange={(e) => setDataFunction(e, "respond_text")}
-            style={{ height: "40px", marginLeft: "12px", width: "260px" }}
-             className="custom-input"
-          />
-          
-        </RadioGroup>
-      </Row>
-    </Container>
-  </div>
-</div>
-    
+return (
+  <>
+    {/* =========================================================
+        01 : ตอบกลับผู้ร้องเรียน
+        ========================================================= */}
     <div className="section-card">
-    <div className="section-header">
-    <GreenCircle />
-              <span>สรุปประเด็นร้องเรียน</span>
-  <span className="required-badge">จำเป็น</span>
-    </div>
-  <div className="section-body">
-    <Container>
-      <Row>
-        <div
-          className={
-            missingKeys.some((item) => item.key === "summarize")
-              ? "AreaBOX SETERRORBOX"
-              : "AreaBOX"
+
+      <div className="section-header">
+        <span className="section-number">01</span>
+
+        <div className="section-header-content">
+          <div className="section-title">
+            ตอบกลับผู้ร้องเรียน
+          </div>
+
+          <div className="section-description">
+            ระบุความประสงค์ของผู้ร้องเรียนเกี่ยวกับการตอบกลับ การติดต่อ
+            และการตรวจสอบข้อร้องเรียน
+          </div>
+        </div>
+      </div>
+
+<div className="section-body">
+  <Container>
+
+    <RadioGroup
+      id="respond_radio"
+      name="respond_radio"
+      value={data?.respond_radio || "0"}
+      onChange={(e) => setDataFunction(e, "respond_radio")}
+    >
+
+      {/* ตอบกลับแล้ว */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          minHeight: "48px",
+        }}
+      >
+        <FormControlLabel
+          disabled={Mode === "Show"}
+          value="0"
+          control={<Radio />}
+          label="ตอบกลับผู้ร้องเรียนแล้ว"
+          sx={{
+            margin: 0,
+          }}
+        />
+      </div>
+
+
+      {/* ยังไม่ได้ตอบกลับ */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          minHeight: "48px",
+        }}
+      >
+
+        <FormControlLabel
+          disabled={Mode === "Show"}
+          value="1"
+          control={<Radio />}
+          label="ยังไม่ได้ตอบกลับผู้ร้องเรียน"
+          sx={{
+            margin: 0,
+            flexShrink: 0,
+          }}
+        />
+
+        <Form.Control
+          disabled={
+            disable ||
+            data?.respond_radio !== "1"
           }
-        >
-          <TextField
-            id="summary_reply"
-            disabled={Mode === "Show"}
-            label="เขียนรายละเอียด"
-            value={data?.summary_reply || ""}
-                 ref={(el) => (inputRefs.current.summary_reply= el)}
+          value={data?.respond_text || ""}
+          onChange={(e) =>
+            setDataFunction(e, "respond_text")
+          }
+          placeholder="ระบุสาเหตุ"
+          className="custom-input"
+          style={{
+            height: "40px",
+            width: "320px",
+            marginLeft: "12px",
+          }}
+        />
+
+      </div>
+
+
+      {/* ไม่ต้องการตอบกลับ */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          minHeight: "48px",
+        }}
+      >
+        <FormControlLabel
+          disabled={Mode === "Show"}
+          value="2"
+          control={<Radio />}
+          label="ผู้ร้องเรียนไม่ต้องการตอบกลับ"
+          sx={{
+            margin: 0,
+          }}
+        />
+      </div>
+
+    </RadioGroup>
+
+  </Container>
+</div>
+
+
+    </div>
+
+
+    {/* =========================================================
+        02 : สรุปผลการวิเคราะห์และแนวทางการแก้ไข
+        ========================================================= */}
+    <div className="section-card">
+
+      <div className="section-header">
+
+        <span className="section-number">
+          02
+        </span>
+
+        <div className="section-header-content">
+
+          <div className="section-title">
+            สรุปผลการวิเคราะห์และแนวทางการแก้ไข
+          </div>
+
+          <div className="section-description">
+            สรุปประเด็นสำคัญ วิเคราะห์สาเหตุ
+            และกำหนดแนวทางการแก้ไขและป้องกันปัญหาอย่างเป็นระบบ
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* =====================================================
+          01. สรุปประเด็นร้องเรียน
+          ===================================================== */}
+      <div className="form-subsection">
+
+        <div className="form-subtitle">
+          <span className="form-subtitle-number">
+            01
+          </span>
+
+          <span className="form-subtitle-text">
+            สรุปประเด็นร้องเรียน{" "}
+            <span className="required-badge">
+              จำเป็น
+            </span>
+          </span>
+        </div>
+
+        <div className="form-subdescription">
+          สรุปสาระสำคัญของข้อร้องเรียนที่ได้รับ
+          เพื่อใช้เป็นข้อมูลตั้งต้นในการวิเคราะห์
+        </div>
+
+        <div className="section-body">
+
+          <Container>
+
+            <div
+              className={
+                missingKeys.some((item) => item.key === "summarize")
+                  ? "AreaBOX SETERRORBOX"
+                  : "AreaBOX"
+              }
+            >
+
+              <TextField
+                id="summary_reply"
+                disabled={Mode === "Show"}
+                placeholder="เขียนรายละเอียด"
+                value={data?.summary_reply || ""}
+                ref={(el) =>
+                  (inputRefs.current.summary_reply = el)
+                }
                 onChange={(e) => {
-      setErrors((prev) => ({ ...prev, summary_reply: false }));
 
-      setDataFunction(e, "summary_reply");
-    }}
-            multiline
-            rows={4}
-            variant="standard"
+                  setErrors((prev) => ({
+                    ...prev,
+                    summary_reply: false,
+                  }));
 
-            fullWidth
-                 style={{
-      borderColor: errors.summary_reply ? "#dc3545" : "",
-      boxShadow: errors.summary_reply ? "0 0 0 0.2rem rgba(220,53,69,.25)" : "",
-      boxShadow: errors.summary_reply ? "0 0 0 0.2rem rgba(220,53,69,.25)" : "",
-    }}
-          />
-        </div>
-          {(errors.summary_reply ) && (
-            <Form.Control.Feedback
-              type="invalid"
-              style={{ display: "flex", alignItems: "center", gap: 4 }}
-            >
-        <ErrorOutlineIcon fontSize="small" />
-              กรุณาเขียนรายละเอียด
-            </Form.Control.Feedback>
-          )}
-      </Row>
-    </Container>
-  </div>
-</div>
+                  setDataFunction(e, "summary_reply");
 
-<div className="section-card">
-    <div className="section-header">
-    <GreenCircle />
-      <span>ผลการวิเคราะห์สาเหตุ</span>
-  <span className="required-badge">จำเป็น</span>
-    </div>
-  <div className="section-body">
-    <Container>
-      <Row>
-        <div
-          className={
-            missingKeys.some((item) => item.key === "expectation")
-              ? "AreaBOX SETERRORBOX"
-              : "AreaBOX"
-          }
-        >
-          <TextField
-            id="summary_analysis"
-            disabled={Mode === "Show"}
-            label="เขียนรายละเอียด"
-                ref={(el) => (inputRefs.current.summary_analysis= el)}
-            value={data?.summary_analysis || ""}
-              onChange={(e) => {
-      setErrors((prev) => ({ ...prev, summary_analysis: false }));
+                }}
+                multiline
+                rows={4}
+                variant="standard"
+                fullWidth
+              />
 
-      setDataFunction(e, "summary_analysis");
-    }}
-              variant="standard"
-            multiline
-            rows={4}
-            fullWidth
-             style={{
-      borderColor: errors.summary_analysis ? "#dc3545" : "",
-      boxShadow: errors.summary_analysis ? "0 0 0 0.2rem rgba(220,53,69,.25)" : "",
-      boxShadow: errors.summary_analysis ? "0 0 0 0.2rem rgba(220,53,69,.25)" : "",
-    }}
-          />
-        </div>
-         {(errors.summary_analysis ) && (
-            <Form.Control.Feedback
-              type="invalid"
-              style={{ display: "flex", alignItems: "center", gap: 4 }}
-            >
-        <ErrorOutlineIcon fontSize="small" />
-              กรุณาเขียนรายละเอียด
-            </Form.Control.Feedback>
-          )}
-      </Row>
-    </Container>
-  </div>
-</div>
-     <div className="section-card">
-    <div className="section-header">
-    <GreenCircle />
-          <span>แนวทางการแก้ไข/ป้องกันปัญหาในเชิงระบบ</span>
-  <span className="required-badge">จำเป็น</span>
-    </div>
-    
-  <div className="section-body">
-    <Container>
-      <Row>
-        <div
-          className={
-            missingKeys.some((item) => item.key === "decision")
-              ? "AreaBOX SETERRORBOX"
-              : "AreaBOX"
-          }
-        >
-          <TextField
-            id="summary_solving"
-            disabled={Mode === "Show"}
-            label="เขียนรายละเอียด"
-                         ref={(el) => (inputRefs.current.summary_solving= el)}
-            value={data?.summary_solving || ""}
-              onChange={(e) => {
-      setErrors((prev) => ({ ...prev, summary_solving: false }));
+            </div>
 
-      setDataFunction(e, "summary_solving");
-    }}
-             variant="standard"
-            multiline
-            rows={4}
-            fullWidth
+            {errors.summary_reply && (
+              <Form.Control.Feedback
+                type="invalid"
                 style={{
-      borderColor: errors.summary_solving ? "#dc3545" : "",
-      boxShadow: errors.summary_solving ? "0 0 0 0.2rem rgba(220,53,69,.25)" : "",
-      boxShadow: errors.summary_solving ? "0 0 0 0.2rem rgba(220,53,69,.25)" : "",
-    }}
-          />
-        </div>
-          {(errors.summary_solving ) && (
-            <Form.Control.Feedback
-              type="invalid"
-              style={{ display: "flex", alignItems: "center", gap: 4 }}
-            >
-        <ErrorOutlineIcon fontSize="small" />
-              กรุณาเขียนรายละเอียด
-            </Form.Control.Feedback>
-          )}
-      </Row>
-    </Container>
-  </div>
-</div>
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <ErrorOutlineIcon fontSize="small" />
+                กรุณาเขียนรายละเอียด
+              </Form.Control.Feedback>
+            )}
 
-    </>
-  );
+          </Container>
+
+        </div>
+      </div>
+
+
+      {/* =====================================================
+          02. ผลการวิเคราะห์สาเหตุ
+          ===================================================== */}
+      <div className="form-subsection">
+
+        <div className="form-subtitle">
+
+          <span className="form-subtitle-number">
+            02
+          </span>
+
+          <span className="form-subtitle-text">
+            ผลการวิเคราะห์สาเหตุ{" "}
+            <span className="required-badge">
+              จำเป็น
+            </span>
+          </span>
+
+        </div>
+
+        <div className="form-subdescription">
+          วิเคราะห์สาเหตุหรือปัจจัยที่เกี่ยวข้องกับข้อร้องเรียน
+          เพื่อค้นหาสาเหตุของปัญหาอย่างเป็นระบบ
+        </div>
+
+        <div className="section-body">
+
+          <Container>
+
+            <div
+              className={
+                missingKeys.some((item) => item.key === "expectation")
+                  ? "AreaBOX SETERRORBOX"
+                  : "AreaBOX"
+              }
+            >
+
+              <TextField
+                id="summary_analysis"
+                disabled={Mode === "Show"}
+                placeholder="เขียนรายละเอียด"
+                ref={(el) =>
+                  (inputRefs.current.summary_analysis = el)
+                }
+                value={data?.summary_analysis || ""}
+                onChange={(e) => {
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    summary_analysis: false,
+                  }));
+
+                  setDataFunction(e, "summary_analysis");
+
+                }}
+                variant="standard"
+                multiline
+                rows={4}
+                fullWidth
+              />
+
+            </div>
+
+            {errors.summary_analysis && (
+              <Form.Control.Feedback
+                type="invalid"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <ErrorOutlineIcon fontSize="small" />
+                กรุณาเขียนรายละเอียด
+              </Form.Control.Feedback>
+            )}
+
+          </Container>
+
+        </div>
+      </div>
+
+
+      {/* =====================================================
+          03. แนวทางการแก้ไข / ป้องกัน
+          ===================================================== */}
+      <div className="form-subsection">
+
+        <div className="form-subtitle">
+
+          <span className="form-subtitle-number">
+            03
+          </span>
+
+          <span className="form-subtitle-text">
+            แนวทางการแก้ไข/ป้องกันปัญหาในเชิงระบบ{" "}
+            <span className="required-badge">
+              จำเป็น
+            </span>
+          </span>
+
+        </div>
+
+        <div className="form-subdescription">
+          ระบุแนวทางการแก้ไข ปรับปรุง หรือป้องกันไม่ให้เกิดปัญหาซ้ำ
+          โดยมุ่งเน้นการแก้ไขในระดับระบบงาน
+        </div>
+
+        <div className="section-body">
+
+          <Container>
+
+            <div
+              className={
+                missingKeys.some((item) => item.key === "decision")
+                  ? "AreaBOX SETERRORBOX"
+                  : "AreaBOX"
+              }
+            >
+
+              <TextField
+                id="summary_solving"
+                disabled={Mode === "Show"}
+                placeholder="เขียนรายละเอียด"
+                ref={(el) =>
+                  (inputRefs.current.summary_solving = el)
+                }
+                value={data?.summary_solving || ""}
+                onChange={(e) => {
+
+                  setErrors((prev) => ({
+                    ...prev,
+                    summary_solving: false,
+                  }));
+
+                  setDataFunction(e, "summary_solving");
+
+                }}
+                variant="standard"
+                multiline
+                rows={4}
+                fullWidth
+              />
+
+            </div>
+
+            {errors.summary_solving && (
+              <Form.Control.Feedback
+                type="invalid"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <ErrorOutlineIcon fontSize="small" />
+                กรุณาเขียนรายละเอียด
+              </Form.Control.Feedback>
+            )}
+
+          </Container>
+
+        </div>
+      </div>
+
+    </div>
+  </>
+);
+
+
 };
 
 export default GeneralInfo;

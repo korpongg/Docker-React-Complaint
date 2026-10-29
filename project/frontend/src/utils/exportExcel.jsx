@@ -157,6 +157,8 @@ export const exportComplaintExcel = (data) => {
     "สถานะ":
       row.status == 0
         ? "ไม่ใช่ข้อร้องเรียน"
+          : row.risk == 4
+        ? "เสร็จสมบูรณ์"
         : row.risk == 3
         ? "วิเคราะห์แล้ว"
         : row.risk == 2
@@ -244,7 +246,9 @@ export const exportComplaintExcel = (data) => {
       "-",
 
     "หมายเหตุ":
-      "-",
+    row.remark || "-",
+
+      
   }));
 
   // ==========================================
@@ -908,6 +912,27 @@ export const exportComplaintExcel = (data) => {
           bold: true,
           color: {
             rgb: "0369A1",
+          },
+        },
+      };
+    }
+
+    if (
+      row["สถานะ"] ===
+      "เสร็จสมบูรณ์"
+    ) {
+      style = {
+        fill: {
+          fgColor: {
+            rgb: "F0FDF4",
+          },
+        },
+
+        font: {
+          name: "Tahoma",
+          bold: true,
+          color: {
+            rgb: "15803D",
           },
         },
       };

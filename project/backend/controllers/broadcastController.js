@@ -39,18 +39,48 @@ const getCenter1 = async (payload = {}) => {
     if (severity === "complaint") {
       whereClause += ` AND com.suggestion IN ('C','D','E','F','G','H','I')`;
     }
+// =====================================================
+// STATUS FILTER
+// =====================================================
 
-    if (status) {
-      whereClause += ` AND com.risk = :status`;
-      replacements.status = Number(status);
-    }
+if (status === "__NULL__" || status === null) {
+
+  // ข้อร้องเรียนใหม่: risk ต้องเป็น NULL
+  whereClause += `
+    AND com.risk IS NULL
+    AND com.deleteAt IS NULL
+  `;
+
+} else if (String(status) === "5") {
+
+  // ไม่ใช่ข้อร้องเรียน: สนใจ com.status = 0 เท่านั้น
+  // ไม่กรอง com.risk
+  whereClause += `
+    AND com.status = 0
+  `;
+
+} else if (status !== undefined && status !== "") {
+
+  const statusValue = Number(status);
+
+  if (!Number.isFinite(statusValue)) {
+    throw new Error(`Invalid status: ${status}`);
+  }
+
+  whereClause += `
+    AND com.risk = :status
+    AND com.deleteAt IS NULL
+  `;
+
+  replacements.status = statusValue;
+}
     const sql = `
       SELECT
         com.id,
         com.reportid,
         com.reply,
         com.risk,
-        com.suggestion,
+        com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
         com.date,
         com.involved,
         com.formstatus,
@@ -63,7 +93,7 @@ const getCenter1 = async (payload = {}) => {
                 com.patient_hn,
                   com.patient_name,
 com.patient_age,
-
+MAX(CAST(com.remark AS NVARCHAR(MAX))) AS remark,
          com.summarize,
            com.complaints,
            com1.managementremark,
@@ -99,7 +129,7 @@ com.urgentDate,
           com.reportid,
         com.reply,
         com.risk,
-        com.suggestion,
+        com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
         com.date,
           com.record_other,
       com.complaints_other,
@@ -224,18 +254,37 @@ if (userLevel) {
       whereClause += ` AND com.suggestion IN ('C','D','E','F','G','H','I')`;
     }
 
-    if (status) {
-      whereClause += ` AND com.risk = :status`;
-      replacements.status = Number(status);
-    }
-    if (startDate) {
-      whereClause += `
- AND CAST(com.date AS DATE)=:startDate
- `;
-      replacements.startDate = startDate;
-    }
+if (status === "__NULL__" || status === null) {
 
- 
+  // ข้อร้องเรียนใหม่: risk ต้องเป็น NULL
+  whereClause += `
+    AND com.risk IS NULL
+    AND com.deleteAt IS NULL
+  `;
+
+} else if (String(status) === "5") {
+
+  // ไม่ใช่ข้อร้องเรียน: สนใจ com.status = 0 เท่านั้น
+  // ไม่กรอง com.risk
+  whereClause += `
+    AND com.status = 0
+  `;
+
+} else if (status !== undefined && status !== "") {
+
+  const statusValue = Number(status);
+
+  if (!Number.isFinite(statusValue)) {
+    throw new Error(`Invalid status: ${status}`);
+  }
+
+  whereClause += `
+    AND com.risk = :status
+    AND com.deleteAt IS NULL
+  `;
+
+  replacements.status = statusValue;
+}
     const sql = `
       SELECT
         com.id,
@@ -246,9 +295,9 @@ if (userLevel) {
         com.date,
         com.involved,
         dept.deptrelate_name AS deptrelate,
-         com.suggestion,
+         com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
            com.complaints,
-
+com.summarize,
    com.record_other,
       com.complaints_other,
 
@@ -282,8 +331,9 @@ if (userLevel) {
         com.formstatus,
         com.date,
         com.involved,
+        com.summarize,
         dept.deptrelate_name,
-         com.suggestion,
+         com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
            com.complaints,
             com1.managementremark,
               com.status,
@@ -513,18 +563,13 @@ const getCenter3 = async (payload = {}) => {
     |--------------------------------------------------------------------------
     */
 
-    if (Array.isArray(risks) && risks.length > 0) {
+ if (Array.isArray(risks) && risks.length > 0) {
+  whereClause += `
+    AND com.risk IN (:risks)
+  `;
 
-      whereClause += `
-        AND (
-          com.risk IN (:risks)
-          OR com.risk IS NULL
-        )
-      `;
-
-      replacements.risks = risks;
-    }
-
+  replacements.risks = risks;
+}
     /*
     |--------------------------------------------------------------------------
     | REPORT NO
@@ -637,16 +682,37 @@ const getCenter3 = async (payload = {}) => {
     | STATUS
     |--------------------------------------------------------------------------
     */
+if (status === "__NULL__" || status === null) {
 
-    if (status) {
+  // ข้อร้องเรียนใหม่: risk ต้องเป็น NULL
+  whereClause += `
+    AND com.risk IS NULL
+    AND com.deleteAt IS NULL
+  `;
 
-      whereClause += `
-        AND com.risk = :status
-      `;
+} else if (String(status) === "5") {
 
-      replacements.status = Number(status);
-    }
+  // ไม่ใช่ข้อร้องเรียน: สนใจ com.status = 0 เท่านั้น
+  // ไม่กรอง com.risk
+  whereClause += `
+    AND com.status = 0
+  `;
 
+} else if (status !== undefined && status !== "") {
+
+  const statusValue = Number(status);
+
+  if (!Number.isFinite(statusValue)) {
+    throw new Error(`Invalid status: ${status}`);
+  }
+
+  whereClause += `
+    AND com.risk = :status
+    AND com.deleteAt IS NULL
+  `;
+
+  replacements.status = statusValue;
+}
     // =====================================================
     // SQL
     // =====================================================
@@ -666,10 +732,10 @@ const getCenter3 = async (payload = {}) => {
 
         com.record_other,
         com.complaints_other,
-        com.suggestion,
+        com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
 
         com1.managementremark,
-
+com.summarize,
         com.createAt,
         com.updateAt,
 
@@ -780,10 +846,10 @@ const getCenter3 = async (payload = {}) => {
         com.date,
         com.involved,
         com.status,
-
+com.summarize,
         dept.deptrelate_name,
 
-        com.suggestion,
+        com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
         com.complaints,
 
         com.record_other,
@@ -815,26 +881,16 @@ const getCenter3 = async (payload = {}) => {
     // DEBUG
     // =====================================================
 
-    console.log("======================================");
-    console.log("getCenter3 PAYLOAD");
-    console.log(payload);
+   const result = await sequelize.query(sql, {
+  replacements,
+  type: QueryTypes.SELECT,
+});
 
-    console.log("getCenter3 REPLACEMENTS");
-    console.log(replacements);
+const target = result.find(
+  (x) => String(x.reportid).trim() === "0021026"
+);
 
-    console.log("getCenter3 WHERE");
-    console.log(whereClause);
-
-    console.log("======================================");
-
-    // =====================================================
-    // EXECUTE
-    // =====================================================
-
-    return await sequelize.query(sql, {
-      replacements,
-      type: QueryTypes.SELECT,
-    });
+return result;
 
   } catch (err) {
 
@@ -923,14 +979,37 @@ const getCenter4 = async (payload = {}) => {
     AND com.suggestion IN ('C','D','E','F','G','H','I')
   `;
     }
+if (status === "__NULL__" || status === null) {
 
-    if (status) {
-      whereClause += `
-    AND com.risk = :status
+  // ข้อร้องเรียนใหม่: risk ต้องเป็น NULL
+  whereClause += `
+    AND com.risk IS NULL
+    AND com.deleteAt IS NULL
   `;
-      replacements.status = Number(status);
-    }
 
+} else if (String(status) === "5") {
+
+  // ไม่ใช่ข้อร้องเรียน: สนใจ com.status = 0 เท่านั้น
+  // ไม่กรอง com.risk
+  whereClause += `
+    AND com.status = 0
+  `;
+
+} else if (status !== undefined && status !== "") {
+
+  const statusValue = Number(status);
+
+  if (!Number.isFinite(statusValue)) {
+    throw new Error(`Invalid status: ${status}`);
+  }
+
+  whereClause += `
+    AND com.risk = :status
+    AND com.deleteAt IS NULL
+  `;
+
+  replacements.status = statusValue;
+}
     const sql = `
       SELECT
         com.id,
@@ -940,9 +1019,10 @@ const getCenter4 = async (payload = {}) => {
         com.formstatus,
         com.date,
         com.involved,
+        com.summarize,
           com.status,
                dept.deptrelate_name AS deptrelate,
-         com.suggestion,
+         com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
            com.complaints,
              com.record_other,
       com.complaints_other,
@@ -981,9 +1061,10 @@ const getCenter4 = async (payload = {}) => {
         dept.deptrelate_name,
           com.status,
          com1.managementremark,
-         com.suggestion,
+         com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
            com.record_other,
       com.complaints_other,
+      com.summarize,
            com.complaints,
          com.type,
            com.createAt,com.updateAt,
@@ -1252,7 +1333,7 @@ const getMenuCount = async (payload = {}) => {
             com.reportid,
             com.reply,
             com.risk,
-            com.suggestion,
+            com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
             com.date,
             com.involved,
             com.formstatus,
@@ -1347,22 +1428,6 @@ const getMenuCount = async (payload = {}) => {
       ) AS summary
     `;
 
-
-    /* =========================================================
-       DEBUG
-    ========================================================= */
-
-    console.log("======================================");
-    console.log("getMenuCount PAYLOAD");
-    console.log(payload);
-
-    console.log("getMenuCount PERMISSION");
-    console.log(responsePermission);
-
-    console.log("getMenuCount REPLACEMENTS");
-    console.log(replacements);
-
-    console.log("======================================");
 
 
     return await sequelize.query(sql, {

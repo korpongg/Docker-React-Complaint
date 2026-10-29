@@ -211,479 +211,827 @@ const committeeOptions = [
 
   return (
     <>
-      <div className="section-card">
-        <div
-          className="section-header"
-          style={{ textAlign: "left", width: "100%" }}
-        >
-          <GreenCircle />
-          1. ประเด็นร้องเรียน&nbsp;
-          <u>
-            <b>ไม่เป็นจริง</b>
-          </u>
-          &nbsp;ตามที่ผู้ใช้บริการร้องเรียน / เป็นเรื่องที่ผ่านมาแล้วในอดีต
+<div className="section-card complaint-result-section">
+
+  {/* =========================
+      SECTION HEADER
+  ========================= */}
+  <div className="section-header">
+    <span className="section-number">01</span>
+
+    <div className="section-header-content">
+      <div className="section-title">
+        ผลการพิจารณาข้อร้องเรียน
+      </div>
+
+      <div className="section-description">
+        ระบุผลการพิจารณาและแนวทางการดำเนินการต่อข้อร้องเรียน
+      </div>
+    </div>
+  </div>
+
+  <div className="section-body complaint-result-body">
+
+    <div className="complaint-result-label">
+      เลือกผลการพิจารณา
+    </div>
+
+    {/* ==================================================
+        01 ไม่เป็นจริง
+    ================================================== */}
+    <div
+      className={`complaint-result-card ${
+        ["0", "1", "2"].includes(data?.respond_Type)
+          ? "selected"
+          : ""
+      }`}
+    >
+      <div className="complaint-result-card-header">
+
+        <FormControlLabel
+          value="group-1"
+          control={
+            <Radio
+              checked={["0", "1", "2"].includes(data?.respond_Type)}
+              onChange={() => {
+                if (Mode !== "Show") {
+                  setDataFunction(
+                    { target: { value: "0" } },
+                    "respond_Type"
+                  );
+                }
+              }}
+              disabled={Mode === "Show"}
+            />
+          }
+          label=""
+        />
+
+        <div className="complaint-result-number">
+          01
         </div>
 
-        <div className="section-body">
-          <Container>
-            <RadioGroup
-              id="respond_Untrue"
-              name="respond_Type"
-              value={data?.respond_Type  || ""}
-              onChange={(e) => {
-                setDataFunction(e, "respond_Type");
-              }}
-            >
-              <FormControlLabel
-                sx={{ my: 1 }}
-                disabled={Mode === "Show"}
-                value="0"
-                control={<Radio />}
-                label="ประเด็นร้องเรียนไม่มีมูลความจริงตามที่ร้องเรียน"
-              />
+        <div className="complaint-result-heading">
+          <div className="complaint-result-title">
+            ประเด็นร้องเรียนไม่เป็นจริง
+          </div>
 
-              <FormControlLabel
-                sx={{ my: 1 }}
-                disabled={Mode === "Show"}
-                value="1"
-                control={<Radio />}
-                label="ความเข้าใจของผู้ใช้บริการผิดพลาด / คลาดเคลื่อน"
-              />
-
-              <FormControlLabel
-                sx={{ my: 1 }}
-                disabled={Mode === "Show"}
-                value="2"
-                control={<Radio />}
-                label="ประเด็นร้องเรียนเป็นข้อร้องเรียนที่ผ่านมาแล้วในอดีต (เกิน 1 เดือนขึ้นไป นับจากการร้องเรียนในครั้งนี้)"
-              />
-            </RadioGroup>
-          </Container>
+          <div className="complaint-result-description">
+            ตามที่ผู้ใช้บริการร้องเรียน / เป็นเรื่องที่ผ่านมาแล้วในอดีต
+          </div>
         </div>
       </div>
 
-      <div className="section-card">
-        <div
-          className="section-header"
-          style={{ textAlign: "left", width: "100%" }}
-        >
-          <GreenCircle />
-          2. ประเด็นร้องเรียน&nbsp;
-          <u>
-            <b>เป็นจริง</b>
-          </u>
-          &nbsp;ตามที่ผู้ใช้บริการร้องเรียน&nbsp;
-          <u>
-            <b>แต่สามารถป้องกันได้/แก้ไข</b>
-          </u>
+      <div className="complaint-result-content">
+
+        <div className="complaint-sub-label">
+          เหตุผล
         </div>
 
-        <div className="section-body">
-          <Container>
-            <RadioGroup
-              name="respond_Type"
-              value={data?.respond_Type  || ""}
-              onChange={(e) => setDataFunction(e, "respond_Type")}
+        <RadioGroup
+          name="respond_Type"
+          value={data?.respond_Type || ""}
+          onChange={(e) =>
+            setDataFunction(e, "respond_Type")
+          }
+        >
+
+          <FormControlLabel
+            value="0"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label="ประเด็นร้องเรียนไม่มีมูลความจริงตามที่ร้องเรียน"
+          />
+
+          <FormControlLabel
+            value="1"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label="ความเข้าใจของผู้ใช้บริการผิดพลาด / คลาดเคลื่อน"
+          />
+
+          <FormControlLabel
+            value="2"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label="ประเด็นร้องเรียนเป็นข้อร้องเรียนที่ผ่านมาแล้วในอดีต"
+          />
+
+        </RadioGroup>
+
+      </div>
+    </div>
+
+
+    {/* ==================================================
+        02 เป็นจริง + แก้ไขได้
+    ================================================== */}
+    <div
+      className={`complaint-result-card ${
+        ["3", "4", "5"].includes(data?.respond_Type)
+          ? "selected"
+          : ""
+      }`}
+    >
+
+      <div className="complaint-result-card-header">
+
+        <FormControlLabel
+          value="group-2"
+          control={
+            <Radio
+              checked={["3", "4", "5"].includes(data?.respond_Type)}
+              onChange={() => {
+                if (Mode !== "Show") {
+                  setDataFunction(
+                    { target: { value: "3" } },
+                    "respond_Type"
+                  );
+                }
+              }}
+              disabled={Mode === "Show"}
+            />
+          }
+          label=""
+        />
+
+        <div className="complaint-result-number">
+          02
+        </div>
+
+        <div className="complaint-result-heading">
+          <div className="complaint-result-title">
+            ประเด็นร้องเรียนเป็นจริง
+          </div>
+
+          <div className="complaint-result-description">
+            ตามที่ผู้ใช้บริการร้องเรียน แต่สามารถป้องกันได้ / แก้ไขได้
+          </div>
+        </div>
+
+      </div>
+
+
+      <div className="complaint-result-content">
+
+        <div className="complaint-sub-label">
+          แนวทางการดำเนินการ
+        </div>
+
+
+        {/* นโยบายโรงพยาบาล */}
+        <div className="complaint-option-row">
+
+          <FormControlLabel
+            value="3"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label="ประเด็นร้องเรียนเป็นนโยบายของโรงพยาบาล"
+            checked={data?.respond_Type === "3"}
+            onChange={(e) =>
+              setDataFunction(e, "respond_Type")
+            }
+          />
+
+          <div className="complaint-option-note">
+            ให้ศูนย์พัฒนาคุณภาพประสานงานทีมนำพัฒนาคุณภาพ
+            เพื่อพิจารณาดำเนินการ
+          </div>
+
+        </div>
+
+
+        {/* คณะกรรมการ */}
+        <div className="complaint-option-row">
+
+          <FormControlLabel
+            value="4"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label="ประเด็นร้องเรียนที่ต้องดำเนินการโดยคณะกรรมการ"
+            checked={data?.respond_Type === "4"}
+            onChange={(e) =>
+              setDataFunction(e, "respond_Type")
+            }
+          />
+
+          <div className="complaint-inline-control">
+
+            <Form.Select
+              size="sm"
+              disabled={
+                Mode === "Show" ||
+                data?.respond_Type !== "4"
+              }
+              value={data?.respond_Committee || ""}
+              onChange={(e) =>
+                setDataFunction(e, "respond_Committee")
+              }
+              className="custom-input"
             >
-              <Row className="align-items-center mb-3">
-                <Col xs="auto">
-                  <FormControlLabel
-                    value="3"
-                    control={<Radio />}
-                    label="ประเด็นร้องเรียนเป็นนโยบายของโรงพยาบาล ให้ศูนย์พัฒนาคุณภาพ
-                    ประสานงานทีมนำพัฒนาคุณภาพตัดสินใจดำเนินการ"
-                  />
-                </Col>
-              </Row>
+              <option value="">
+                -- เลือกคณะกรรมการ --
+              </option>
 
-              <Row className="align-items-center mb-3">
-                {/* Radio */}
-                <Col xs="auto">
-                  <FormControlLabel
-                    value="4"
-                    control={<Radio />}
-                    label="ประเด็นร้องเรียนที่คณะกรรมการ"
-                  />
-                </Col>
-
-                {/* Input */}
-               <Col md={8}>
-  <Form.Select
-    size="sm"
-    disabled={data?.respond_Type !== "4"}
-    value={data?.respond_Committee || ""}
-    onChange={(e) => setDataFunction(e, "respond_Committee")}
-    className="custom-input"
-    style={{ height: 40 }}
-  >
-    <option value="">-- ไม่ระบุ --</option>
-
-    {committeeOptions.map((committee, index) => (
-      <option key={index} value={committee}>
-        {committee}
-      </option>
-    ))}
-  </Form.Select>
-</Col>
-                {/* Text */}
-                <Col>
-                  <span className="">
-                    ต้องดำเนินการ
-                    ให้ศูนย์พัฒนาคุณภาพประสานงานคณะกรรมการที่เกี่ยวข้อง
-                    เพื่อดำเนินการแก้ไข
-                  </span>
-                </Col>
-              </Row>
-              <Row className="align-items-center">
-                <Col xs="auto">
-                  <FormControlLabel
-                    value="5"
-                    control={<Radio />}
-                    label="ประเด็นร้องเรียนเป็นจริงตามที่ผู้ใช้บริการร้องเรียน เนื่องจากสาเหตุ"
-                  />
-                </Col>
-              </Row>
-              <div className="p-1">
-                <RadioGroup
-                  name="respond_Cause"
-                
-                  sx={{
-                    alignItems: "flex-start", // 🔥 ชิดซ้าย
-                  }}
+              {committeeOptions.map((committee, index) => (
+                <option
+                  key={index}
+                  value={committee}
                 >
-                  <div className="border rounded p-3">
-                    <Row className="">
+                  {committee}
+                </option>
+              ))}
+            </Form.Select>
+
+          </div>
+
+          <div className="complaint-option-note">
+            ให้ศูนย์พัฒนาคุณภาพประสานงานคณะกรรมการที่เกี่ยวข้อง
+            เพื่อดำเนินการแก้ไข
+          </div>
+
+        </div>
+
+
+        {/* สาเหตุ */}
+        <div className="complaint-option-row">
+
+          <FormControlLabel
+            value="5"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label="ประเด็นร้องเรียนเป็นจริงตามที่ผู้ใช้บริการร้องเรียน เนื่องจากสาเหตุ"
+            checked={data?.respond_Type === "5"}
+            onChange={(e) =>
+              setDataFunction(e, "respond_Type")
+            }
+          />
+
+        </div>
+
+
+        {/* CAUSE */}
+        <div
+          className={`cause-panel ${
+            data?.respond_Type === "5"
+              ? "cause-panel-active"
+              : ""
+          }`}
+        >
+
+          <div className="cause-panel-header">
+            <div>
+              <div className="cause-panel-title">
+                ระบุสาเหตุที่เกี่ยวข้อง
+              </div>
+
+              <div className="cause-panel-description">
+                สามารถเลือกได้มากกว่า 1 รายการ
+              </div>
+            </div>
+          </div>
+
+
+          {/* พฤติกรรมการให้บริการ */}
+          <div className="cause-special">
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="0"
+                  checked={respond_Cause.includes("0")}
+                  disabled={
+                    Mode === "Show" ||
+                    data?.respond_Type !== "5"
+                  }
+                  onChange={(e) =>
+                    setCheckBoxFunction(
+                      e,
+                      "respond_Cause"
+                    )
+                  }
+                />
+              }
+              label="พฤติกรรมการให้บริการไม่เหมาะสม"
+            />
+
+
+            {respond_Cause.includes("0") && (
+
+              <div className="cause-detail-box">
+
+                <Row className="g-3 align-items-center">
+
+                  <Col md={3}>
+                    <div className="cause-field-label">
+                      ชื่อ - สกุลเจ้าหน้าที่
+                    </div>
+                  </Col>
+
+                  <Col md={9}>
+
+                    <EmployeeAutocomplete
+                      Mode={Mode}
+                      data={data}
+                      userData={userData}
+                      setDataFunction={setDataFunction}
+                    />
+
+                  </Col>
+
+                </Row>
+
+
+                <div className="cause-info">
+                  เพื่อความสะดวกในการตรวจสอบข้อมูลย้อนหลัง
+                  ขอให้ระบุชื่อ-นามสกุล และรหัสประจำตัวของเจ้าหน้าที่
+                  ที่ถูกร้องเรียนให้ชัดเจน
+                </div>
+
+
+                {/* การดำเนินการ */}
+                <Row className="mt-4">
+
+                  <Col md={3}>
+                    <div className="cause-field-label">
+                      การดำเนินการ
+                    </div>
+                  </Col>
+
+                  <Col md={9}>
+
+                    <RadioGroup
+                      row
+                      value={
+                        data?.respond_Operation || ""
+                      }
+                      onChange={(e) =>
+                        setDataFunction(
+                          e,
+                          "respond_Operation"
+                        )
+                      }
+                    >
+
                       <FormControlLabel
                         value="0"
-                        control={
-                          <Checkbox
-                            name="0"
-                            checked={respond_Cause?.includes("0")}
-                            onChange={(e) =>
-                              setCheckBoxFunction(e, "respond_Cause")
-                            }
-                          />
-                        }
-                        label={<>พฤติกรรมการให้บริการไม่เหมาะสม</>}
+                        disabled={Mode === "Show"}
+                        control={<Radio />}
+                        label="ตักเตือนด้วยวาจา ครั้งที่ 1"
                       />
 
-                      {/* รายละเอียด */}
-                      <div className="mt-2  ">
-                        <div className="border p-3">
-                          <Row className=" g-2 align-items-center ">
-                          <Col md={3} className="text-end">
-                            ระบุชื่อ - สกุลเจ้าหน้าที่
-                          </Col>
+                      <FormControlLabel
+                        value="1"
+                        disabled={Mode === "Show"}
+                        control={<Radio />}
+                        label="ตักเตือนด้วยวาจา ครั้งที่ 2"
+                      />
 
-                          <Col md={9}>
-                            <EmployeeAutocomplete
-                              Mode={Mode}
-                              data={data}
-                              userData={userData}
-                              setDataFunction={setDataFunction}
-                            />
-                          </Col>
-                        
-                          </Row>
+                      <FormControlLabel
+                        value="2"
+                        disabled={Mode === "Show"}
+                        control={<Radio />}
+                        label="ตักเตือนด้วยวาจา ครั้งที่ 3"
+                      />
 
-                          {/* คำอธิบาย */}
-                          <div className="mt-3 p-3 bg-light rounded">
-                            เพื่อความสะดวกในการตรวจสอบข้อมูลย้อนหลัง
-                            ขอให้ระบุชื่อ-นามสกุล
-                            และรหัสประจำตัวของเจ้าหน้าที่่ที่ถูกร้องเรียนให้ชัดเจน
-                          </div>
+                      <FormControlLabel
+                        value="3"
+                        disabled={Mode === "Show"}
+                        control={<Radio />}
+                        label="ตักเตือนเป็นลายลักษณ์อักษร ครั้งที่ 1"
+                      />
 
-                          {/* การดำเนินการ */}
-                          <Row className="mt-4">
-                            <Col md={3}>
-                              <strong>การดำเนินการ : </strong>
-                            </Col>
-                            <Col md={9}>
-                              <RadioGroup
-                                row
-                                value={data?.respond_Operation || ""}
-                                onChange={(e) =>
-                                  setDataFunction(e, "respond_Operation")
-                                }
-                                sx={{
-                                  alignItems: "flex-start", // 🔥 ชิดซ้าย
-                                }}
-                              >
-                                <FormControlLabel
-                                  value="0"
-                                  control={<Radio />}
-                                  label="ตักเตือนด้วยวาจา ครั้งที่ 1"
-                                />
-                                <FormControlLabel
-                                  value="1"
-                                  control={<Radio />}
-                                  label="ตักเตือนด้วยวาจา ครั้งที่ 2"
-                                />
-                                <FormControlLabel
-                                  value="2"
-                                  control={<Radio />}
-                                  label="ตักเตือนด้วยวาจา ครั้งที่ 3"
-                                />
-                                <FormControlLabel
-                                  value="3"
-                                  control={<Radio />}
-                                  label="ตักเตือนเป็นลายลักษณ์อักษร ครั้งที่ 1"
-                                />
-                                <FormControlLabel
-                                  value="4"
-                                  control={<Radio />}
-                                  label="ตักเตือนเป็นลายลักษณ์อักษร ครั้งที่ 2"
-                                />
-                              </RadioGroup>
-                            </Col>
-                          </Row>
+                      <FormControlLabel
+                        value="4"
+                        disabled={Mode === "Show"}
+                        control={<Radio />}
+                        label="ตักเตือนเป็นลายลักษณ์อักษร ครั้งที่ 2"
+                      />
 
-                          {/* สถานะ */}
-                          <Row className="mt-3">
-                            <Col md={3}>
-                              <strong>บันทึกการรับทราบการตักเตือน : </strong>
-                            </Col>
-                            <Col md={9}>
-                              <RadioGroup
-                                row
-                                value={data?.respond_Warn || ""}
-                                onChange={(e) =>
-                                  setDataFunction(e, "respond_Warn")
-                                }
-                              >
-                                <div>
-                                  <FormControlLabel
-                                    value="0"
-                                    control={<Radio />}
-                                    label="ไม่ยอมรับการตักเตือน"
-                                  />
-                                </div>
+                    </RadioGroup>
 
-                                <div>
-                                  <FormControlLabel
-                                    value="1"
-                                    control={<Radio />}
-                                    label="ยอมรับการตักเตือน (ลงนามผู้ถูกตักเตือน)"
-                                  />
-                                  <InputGroup>
-                                    <InputGroup.Text>
-                                      <i className="bi bi-person-circle"></i>
-                                    </InputGroup.Text>
-                                    <Form.Control
-                                      className="custom-input"
-                                      placeholder="ลงนามผู้ถูกตักเตือน"
-                                      value={data?.cautioned || ""}
-                                      onChange={(e) =>
-                                        setDataFunction(e, "cautioned")
-                                      }
-                                      style={{ height: 40, maxWidth: "300px" }}
-                                    />
-                                  </InputGroup>
-                                </div>
-                              </RadioGroup>
-                            </Col>
-                          </Row>
-                        </div>
-                      </div>
-                      {causeList.map((item) => (
-                        <Col
-                          md={6}
-                          key={item.value}
-                          className="d-flex my-2 justify-content-start"
-                        >
-                 
-                          <FormControlLabel
-                            value={item.value}
-                            control={
-                              <Checkbox
-                                name={item.value}
-                                checked={respond_Cause.includes(item.value)}
-                                onChange={(e) =>
-                                  setCheckBoxFunction(e, "respond_Cause")
-                                }
-                              />
+                  </Col>
+
+                </Row>
+
+
+                {/* รับทราบ */}
+                <Row className="mt-4">
+
+                  <Col md={3}>
+                    <div className="cause-field-label">
+                      บันทึกการรับทราบการตักเตือน
+                    </div>
+                  </Col>
+
+                  <Col md={9}>
+
+                    <RadioGroup
+                      row
+                      value={data?.respond_Warn || ""}
+                      onChange={(e) =>
+                        setDataFunction(
+                          e,
+                          "respond_Warn"
+                        )
+                      }
+                    >
+
+                      <FormControlLabel
+                        value="0"
+                        disabled={Mode === "Show"}
+                        control={<Radio />}
+                        label="ไม่ยอมรับการตักเตือน"
+                      />
+
+                      <div>
+
+                        <FormControlLabel
+                          value="1"
+                          disabled={Mode === "Show"}
+                          control={<Radio />}
+                          label="ยอมรับการตักเตือน"
+                        />
+
+                        <InputGroup>
+                          <InputGroup.Text>
+                            <i className="bi bi-person-circle"></i>
+                          </InputGroup.Text>
+
+                          <Form.Control
+                            className="custom-input"
+                            disabled={
+                              Mode === "Show" ||
+                              data?.respond_Warn !== "1"
                             }
-                            label={item.label}
-                            sx={{
-                              width: "100%", // 🔥 บังคับกินเต็ม col
-                              justifyContent: "flex-start",
+                            placeholder="ลงนามผู้ถูกตักเตือน"
+                            value={
+                              data?.cautioned || ""
+                            }
+                            onChange={(e) =>
+                              setDataFunction(
+                                e,
+                                "cautioned"
+                              )
+                            }
+                            style={{
+                              height: 40,
+                              maxWidth: "300px",
                             }}
                           />
-                        </Col>
-                      ))}
-                      <Col md={6} className="d-flex align-items-center">
-                        <FormControlLabel
-                          value="20"
-                          control={
-                            <Checkbox
-                              name="20"
-                              checked={respond_Cause?.includes("20")}
-                              onChange={(e) =>
-                                setCheckBoxFunction(e, "respond_Cause")
-                              }
-                            />
-                          }
-                          label="อื่นๆ (ระบุ)"
-                        />
 
-                        <Form.Control
-                          disabled={!respond_Cause?.includes("20")}
-                          className=" custom-input"
-                          value={data?.respond_CauseOther || ""}
-                          onChange={(e) =>
-                            setDataFunction(e, "respond_CauseOther")
-                          }
-                          style={{ height: 40, maxWidth: "200px" }}
-                        />
-                      </Col>
-                    </Row>
-                  </div>
-                </RadioGroup>
+                        </InputGroup>
+
+                      </div>
+
+                    </RadioGroup>
+
+                  </Col>
+
+                </Row>
+
               </div>
-            </RadioGroup>
-          </Container>
-        </div>
-      </div>
-      <div className="section-card">
-        <div
-          className="section-header "
-          style={{ textAlign: "left", width: "100%" }}
-        >
-          <GreenCircle />
-          3. ประเด็นร้องเรียน&nbsp;
-          <u>
-            <b>เป็นจริง</b>
-          </u>
-          &nbsp;ตามที่ผู้ใช้บริการร้องเรียน&nbsp;
-          <u>
-            <b>แต่ไม่สามารถป้องกัน/แก้ไขได้ในระยะสั้น</b>
-          </u>
-        </div>
 
-        <div className="section-body">
-          <Container>
-            <RadioGroup
-              id="respond_Complaint"
-              name="respond_Type"
-              value={data?.respond_Type  || ""}
-              onChange={(e) => setDataFunction(e, "respond_Type")}
-            >
-              <FormControlLabel
-                sx={{ my: 1 }}
-                disabled={Mode === "Show"}
-                value="6"
-                control={<Radio />}
-                label="ประเด็นข้อร้องเรียนเกินความสามารถของโรงพยาบาล ที่จะดําเนินการให้ได้"
-              />
-
-              <FormControlLabel
-                sx={{ my: 1 }}
-                disabled={Mode === "Show"}
-                value="7"
-                control={<Radio />}
-                label="เหตุสุดวิสัย เช่น เกิดการระบาดของโรค มีจํานวนผู้ใช้บริการมากกว่าปกติ แพทย์ลาฉุกเฉิน (ไม่สามารถหาแพทย์ทดแทนได้ทัน) เป็นต้น"
-              />
-
-              <FormControlLabel
-                sx={{ my: 1 }}
-                disabled={Mode === "Show"}
-                value="8"
-                control={<Radio />}
-                label="เป็นไปตามขั้นตอนการให้บริการ (On process)"
-              />
-              <FormControlLabel
-                disabled={Mode === "Show"}
-                value="9"
-                control={<Radio />}
-                style={{ height: 40 }}
-                sx={{
-                  alignItems: "center", // 👈 แก้ตรงนี้
-                  my: 1,
-                  "& .MuiFormControlLabel-label": {
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                  },
-                }}
-                label={
-                  <>
-                    <span>อื่นๆ (ระบุ)</span>
-                    <Form.Control
-                      disabled={data?.respond_Type !== "9"}
-                      value={data?.respond_ComplaintOther || ""}
-                      style={{ height: 40, width: 300 }}
-                      onChange={(e) =>
-                        setDataFunction(e, "respond_ComplaintOther")
-                      }
-                      className="custom-input"
-                    />
-                  </>
-                }
-              />
-            </RadioGroup>
-          </Container>
-        </div>
-      </div>
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-
-          <span>
-            บันทึกข้อความ / ข้อเสนอแนะของหัวหน้าแผนก/ผู้จัดการฝ่าย เพิ่มเติม
-          </span>
-          <span className="required-badge">จำเป็น</span>
-        </div>
-
-        <div className="section-body">
-          <Container>
-            <div
-              className={
-                missingKeys.some((item) => item.key === "decision")
-                  ? "AreaBOX SETERRORBOX"
-                  : "AreaBOX"
-              }
-            >
-              <TextField
-                fullWidth
-                id="summary_Suggestions"
-                ref={(el) => (inputRefs.current.summary_Suggestions = el)}
-                disabled={Mode === "Show"}
-                label="เขียนรายละเอียด"
-                value={data?.summary_Suggestions || ""}
-                onChange={(e) => {
-                  setErrors((prev) => ({
-                    ...prev,
-                    summary_Suggestions: false,
-                  }));
-
-                  setDataFunction(e, "summary_Suggestions");
-                }}
-                variant="standard"
-                multiline
-                rows={4}
-                style={{
-                  borderColor: errors.summary_Suggestions ? "#dc3545" : "",
-                  boxShadow: errors.summary_Suggestions
-                    ? "0 0 0 0.2rem rgba(220,53,69,.25)"
-                    : "",
-                  boxShadow: errors.summary_Suggestions
-                    ? "0 0 0 0.2rem rgba(220,53,69,.25)"
-                    : "",
-                }}
-              />
-            </div>
-            {errors.summary_Suggestions && (
-              <Form.Control.Feedback
-                type="invalid"
-                style={{ display: "flex", alignItems: "center", gap: 4 }}
-              >
-                <ErrorOutlineIcon fontSize="small" />
-                กรุณาเขียนรายละเอียด
-              </Form.Control.Feedback>
             )}
-          </Container>
+
+          </div>
+
+
+          {/* Cause list */}
+          <div className="cause-grid">
+
+            {causeList.map((item) => (
+
+              <FormControlLabel
+                key={item.value}
+                control={
+                  <Checkbox
+                    name={item.value}
+                    checked={respond_Cause.includes(
+                      item.value
+                    )}
+                    disabled={
+                      Mode === "Show" ||
+                      data?.respond_Type !== "5"
+                    }
+                    onChange={(e) =>
+                      setCheckBoxFunction(
+                        e,
+                        "respond_Cause"
+                      )
+                    }
+                  />
+                }
+                label={item.label}
+              />
+
+            ))}
+
+
+            {/* อื่น ๆ */}
+            <div className="cause-other">
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    name="20"
+                    checked={respond_Cause.includes("20")}
+                    disabled={
+                      Mode === "Show" ||
+                      data?.respond_Type !== "5"
+                    }
+                    onChange={(e) =>
+                      setCheckBoxFunction(
+                        e,
+                        "respond_Cause"
+                      )
+                    }
+                  />
+                }
+                label="อื่น ๆ"
+              />
+
+              <Form.Control
+                disabled={
+                  Mode === "Show" ||
+                  !respond_Cause.includes("20")
+                }
+                className="custom-input"
+                value={
+                  data?.respond_CauseOther || ""
+                }
+                onChange={(e) =>
+                  setDataFunction(
+                    e,
+                    "respond_CauseOther"
+                  )
+                }
+                placeholder="ระบุสาเหตุ"
+                style={{
+                  height: 40,
+                  maxWidth: 280,
+                }}
+              />
+
+            </div>
+
+          </div>
+
         </div>
+
       </div>
+
+    </div>
+
+
+    {/* ==================================================
+        03 เป็นจริง + แก้ไขไม่ได้ระยะสั้น
+    ================================================== */}
+    <div
+      className={`complaint-result-card ${
+        ["6", "7", "8", "9"].includes(data?.respond_Type)
+          ? "selected"
+          : ""
+      }`}
+    >
+
+      <div className="complaint-result-card-header">
+
+        <FormControlLabel
+          value="group-3"
+          control={
+            <Radio
+              checked={["6", "7", "8", "9"].includes(
+                data?.respond_Type
+              )}
+              onChange={() => {
+                if (Mode !== "Show") {
+                  setDataFunction(
+                    { target: { value: "6" } },
+                    "respond_Type"
+                  );
+                }
+              }}
+              disabled={Mode === "Show"}
+            />
+          }
+          label=""
+        />
+
+        <div className="complaint-result-number">
+          03
+        </div>
+
+        <div className="complaint-result-heading">
+
+          <div className="complaint-result-title">
+            ประเด็นร้องเรียนเป็นจริง
+          </div>
+
+          <div className="complaint-result-description">
+            ตามที่ผู้ใช้บริการร้องเรียน แต่ไม่สามารถป้องกัน /
+            แก้ไขได้ในระยะสั้น
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div className="complaint-result-content">
+
+        <div className="complaint-sub-label">
+          เหตุผล
+        </div>
+
+        <RadioGroup
+          name="respond_Type"
+          value={data?.respond_Type || ""}
+          onChange={(e) =>
+            setDataFunction(e, "respond_Type")
+          }
+        >
+
+          <FormControlLabel
+            value="6"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label="ประเด็นข้อร้องเรียนเกินความสามารถของโรงพยาบาลที่จะดำเนินการให้ได้"
+          />
+
+          <FormControlLabel
+            value="7"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label="เหตุสุดวิสัย เช่น เกิดการระบาดของโรค มีจำนวนผู้ใช้บริการมากกว่าปกติ หรือแพทย์ลาฉุกเฉิน"
+          />
+
+          <FormControlLabel
+            value="8"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label="เป็นไปตามขั้นตอนการให้บริการ (On process)"
+          />
+
+          <FormControlLabel
+            value="9"
+            disabled={Mode === "Show"}
+            control={<Radio />}
+            label={
+              <div className="complaint-other-inline">
+
+                <span>
+                  อื่น ๆ
+                </span>
+
+                <Form.Control
+                  disabled={
+                    Mode === "Show" ||
+                    data?.respond_Type !== "9"
+                  }
+                  value={
+                    data?.respond_ComplaintOther || ""
+                  }
+                  onChange={(e) =>
+                    setDataFunction(
+                      e,
+                      "respond_ComplaintOther"
+                    )
+                  }
+                  placeholder="ระบุรายละเอียด"
+                  className="custom-input"
+                  style={{
+                    height: 40,
+                    width: 320,
+                  }}
+                />
+
+              </div>
+            }
+          />
+
+        </RadioGroup>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+   <div className="section-card section-card-important">
+
+  <div className="section-header section-header-important">
+
+    <div className="section-number section-number-important">
+      <span>★</span>
+    </div>
+
+    <div className="section-header-content">
+      <div className="section-title section-title-important">
+        บันทึกข้อความ / ข้อเสนอแนะของหัวหน้าแผนก/ผู้จัดการฝ่าย เพิ่มเติม
+      </div>
+
+      <div className="section-description">
+        สรุปความคิดเห็น ข้อเสนอแนะ หรือแนวทางดำเนินการเพิ่มเติมจากหัวหน้า
+      </div>
+    </div>
+
+    <div className="section-important-badge">
+      สำคัญ
+    </div>
+
+  </div>
+
+  <div className="section-body">
+
+    <Container>
+
+      <div
+        className={
+          missingKeys.some((item) => item.key === "decision")
+            ? "AreaBOX SETERRORBOX"
+            : "AreaBOX"
+        }
+        style={{
+          padding: "18px 20px",
+          borderRadius: "10px",
+          background: "#fffbf5",
+          border: errors.summary_Suggestions
+            ? "1px solid #dc3545"
+            : "1px solid #f3e5c8",
+        }}
+      >
+
+        <div
+          style={{
+            fontFamily: "Mali, sans-serif",
+            fontSize: "12px",
+            fontWeight: 700,
+            color: "#92400e",
+            marginBottom: "8px",
+          }}
+        >
+          ข้อเสนอแนะ / ความเห็นเพิ่มเติม
+        </div>
+
+        <TextField
+          fullWidth
+          id="summary_Suggestions"
+          ref={(el) => (inputRefs.current.summary_Suggestions = el)}
+          disabled={Mode === "Show"}
+          placeholder="เขียนรายละเอียดข้อเสนอแนะหรือความคิดเห็นเพิ่มเติม..."
+          value={data?.summary_Suggestions || ""}
+          onChange={(e) => {
+            setErrors((prev) => ({
+              ...prev,
+              summary_Suggestions: false,
+            }));
+
+            setDataFunction(e, "summary_Suggestions");
+          }}
+          variant="standard"
+          multiline
+          rows={5}
+          InputProps={{
+            disableUnderline: true,
+          }}
+          sx={{
+            "& .MuiInputBase-root": {
+              fontFamily: "Mali, sans-serif",
+              fontSize: "14px",
+              lineHeight: 1.7,
+              padding: 0,
+            },
+            "& .MuiInputBase-input::placeholder": {
+              color: "#a8a29e",
+              opacity: 1,
+            },
+          }}
+        />
+
+      </div>
+
+      {errors.summary_Suggestions && (
+        <Form.Control.Feedback
+          type="invalid"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            marginTop: "6px",
+          }}
+        >
+          <ErrorOutlineIcon fontSize="small" />
+          กรุณาเขียนรายละเอียด
+        </Form.Control.Feedback>
+      )}
+
+    </Container>
+
+  </div>
+
+</div>
     </>
   );
 };

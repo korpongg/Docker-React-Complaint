@@ -8,7 +8,7 @@ import {
   GridToolbarExport,
   GridActionsCellItem,
 } from "@mui/x-data-grid";
-import { Chip, Stack } from "@mui/material";
+import { Chip, Stack, Typography } from "@mui/material";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import dayjs from "dayjs";
@@ -22,13 +22,29 @@ import {
   Edit as EditIcon,
   RefreshRounded as CloseIcon,
   DeleteForeverRounded as DeleteIcon,
+  CalendarMonthRounded,
+  ChatBubbleOutlineRounded,
+  InfoOutlined,
+  SettingsRounded,
+  VisibilityRounded,
+  EditRounded,
+  DeleteForeverRounded,
+  HistoryRounded,
+  CheckCircleRounded,
+  AccessTimeRounded,
+  AutorenewRounded,
+  BlockRounded,
+  PlaceRounded,
+  ApartmentRounded,
+  DescriptionOutlined,
+  ReplyRounded,
 } from "@mui/icons-material";
-import { formatDateTimeN7 } from "../../Function";
-import requestStatusData from "../../label.json";
-import DescriptionIcon from "@mui/icons-material/Description"; // บันทึก
-import ReplyIcon from "@mui/icons-material/Reply"; // ตอบกลับ
-import AssessmentIcon from "@mui/icons-material/Assessment";
-import { Circle, Clock3, MessageSquareText, CheckCircle2 } from "lucide-react";
+import {
+  severityLevels,
+  generalRiskOptions,
+  clinicalRiskOptions,
+  complaintCategoryOptions,
+} from "../../../data/form/DataDict_Risk.jsx";
 import UpdateIcon from "@mui/icons-material/Update";
 import UndoIcon from "@mui/icons-material/Undo";
 import ExpandableTextCell from "../../form/ExpandableTextCell";
@@ -64,13 +80,9 @@ const DataTable = ({
   handleViewClick2,
   handleViewClick3,
   handleViewClick,
-  handleTranfClick,
 
   handleEditClick,
   handleUpdateStatusClick,
-  handleEditClick2,
-  handleEditClick3,
-  handleEditClick4,
   handleDeleteClick,
   handleViewClickSummary,
   loading,
@@ -87,94 +99,115 @@ const DataTable = ({
     0: "OPD",
     1: "IPD",
   };
-  const EditToolbar = React.memo(({ handleAddItem }) => (
-    <GridToolbarContainer
-      sx={{
-        justifyContent: "space-between",
-        p: 2,
-      }}
-    >
-      <Box>
-        <Button
-          variant="contained"
-          onClick={handleAddItem}
-          startIcon={<AddIcon />}
-        >
-          เพิ่มข้อร้องเรียน
-        </Button>
+ 
 
-        <GridToolbarExport
-          sx={{
-            ml: 2,
-          }}
-        />
-      </Box>
-
-      <GridToolbarQuickFilter />
-    </GridToolbarContainer>
-  ));
-  const statusMap = useMemo(() => {
-    const map = {};
-    requestStatusData.reportStatus.forEach((status) => {
-      map[status.id] = { text: status.statusText, color: status.statusColor };
-    });
-    return map;
-  }, []);
-
-  const renderDeptrelateCell = useCallback((params) => {
-    const deptNames = (params.row.deptAffInfo || [])
-      .map((dept) => dept.DepName)
-      .join(", ");
-    return (
-      <Tooltip title={deptNames}>
-        <div className="MuiDataGrid-cellContent" role="presentation">
-          {deptNames}
-        </div>
-      </Tooltip>
-    );
-  }, []);
-
-  const renderViolence =
-    (() => {
-      return "sdsd";
-    },
-    []);
-
-  const severityLevels = {
-    I: { label: "อันตรายมาก", color: "#b91c1c", bg: "#fee2e2" },
-    H: { label: "สูงมาก", color: "#dc2626", bg: "#fee2e2" },
-    G: { label: "สูง", color: "#ea580c", bg: "#ffedd5" },
-    F: { label: "ค่อนข้างสูง", color: "#f97316", bg: "#ffedd5" },
-    E: { label: "ปานกลาง", color: "#ca8a04", bg: "#fef9c3" },
-    D: { label: "ค่อนข้างต่ำ", color: "#65a30d", bg: "#ecfccb" },
-    C: { label: "ต่ำ", color: "#16a34a", bg: "#dcfce7" },
-    B: { label: "ต่ำมาก", color: "#0284c7", bg: "#e0f2fe" },
-    A: { label: "เล็กน้อย", color: "#6b7280", bg: "#f3f4f6" },
+  const HEADER_ICONS = {
+    reportid: <InfoOutlined />,
+    suggestion: <ChatBubbleOutlineRounded />,
+    summary: <CalendarMonthRounded />,
+    complaints: <PlaceRounded />,
+    deptrelate: <ApartmentRounded />,
+    managementremark: <DescriptionOutlined />,
+    involved: <ReplyRounded />,
+    risk: <InfoOutlined />,
+    actions: <SettingsRounded />,
   };
-
-  const shouldShowButton = useCallback(
-    (row, isLowLevel = false) => {
-      const isGeneralRisk = row.reporttypename === "General Risk";
-      const levelCheck = isGeneralRisk
-        ? parseInt(row.level, 10) > 2
-        : ["D", "E", "F", "G", "H", "I"].includes(row.level);
-      const formStatusCheck = ["1", "2", "4"].includes(row.formstatus);
-
-      return (
-        isAdmin &&
-        row.renew &&
-        (isLowLevel ? !levelCheck : levelCheck) &&
-        formStatusCheck
-      );
-    },
-    [isAdmin],
+  const Header = ({ title, field }) => (
+    <HeaderTitle title={title} field={field} />
   );
+  const HeaderTitle = ({ field, title }) => (
+    <Stack direction="row" spacing={0.8} alignItems="center">
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          color: "#176B55",
+          "& svg": { fontSize: 19 },
+        }}
+      >
+        {HEADER_ICONS[field]}
+      </Box>
+      <Typography
+        sx={{
+          fontSize: 13,
+          fontWeight: 800,
+          color: "#176B55",
+          whiteSpace: "normal",
+          lineHeight: 1.35,
+        }}
+      >
+        {title}
+      </Typography>
+    </Stack>
+  );
+
+
+  const getRowClassName = useCallback((params) => {
+    const risk = String(params.row.risk ?? "null");
+    const status = String(params.row.status);
+
+    if (status === "0") return "row-neutral";
+    if (risk === "4" ) return "completed-row";
+     if ( risk === "3") return "row-completed";
+    
+    if (risk === "2") return "row-step3";
+    if (risk === "1") return "row-step2";
+ 
+  }, []);
+
+  const riskStatuses = {
+    null: {
+      label: "ข้อร้องเรียนใหม่",
+      tooltip: "ยังไม่มีการดำเนินการ",
+      color: "#DC2626",
+      border: "#FECACA",
+      bg: "#FFF1F2",
+      icon: <BlockRounded />,
+    },
+    1: {
+      label: "รอตอบกลับ",
+      tooltip: "อยู่ระหว่างรอหน่วยงานตอบกลับ",
+      color: "#475569",
+      border: "#CBD5E1",
+      bg: "#F1F5F9",
+      icon: <AccessTimeRounded />,
+    },
+    2: {
+      label: "ตอบกลับเรียบร้อย",
+      tooltip: "หน่วยงานตอบกลับเรียบร้อยแล้ว",
+      color: "#0284C7",
+      border: "#BAE6FD",
+      bg: "#F0F9FF",
+      icon: <ChatBubbleOutlineRounded />,
+    },
+    3: {
+      label: "วิเคราะห์แล้ว",
+      tooltip: "ดำเนินการวิเคราะห์เสร็จสมบูรณ์",
+      color: "#16A34A",
+      border: "#BBF7D0",
+      bg: "#F0FDF4",
+      icon: <CheckCircleRounded />,
+    },
+    4: {
+      label: "เสร็จสมบูรณ์",
+      tooltip: "รายการนี้ปิดการดำเนินการแล้ว",
+      color: "#15803D",
+      border: "#A7F3D0",
+      bg: "#ECFDF5",
+      icon: <CheckCircleRounded />,
+    },
+  };
+  const makeHeader = (field, title) => ({
+    field,
+    headerName: title,
+    renderHeader: () => <Header field={field} title={title} />,
+  });
 
   const columns = useMemo(
     () => [
       {
         field: "reportid",
-        headerName: "เลขที่",
+        ...makeHeader("reportid", "เลขที่"),
         minWidth: 120,
         align: "center",
         headerAlign: "center",
@@ -209,6 +242,11 @@ const DataTable = ({
               color: "#16A34A",
               border: "#14532D",
               bg: "#DCFCE7",
+            },
+            4: {
+              color: "#15803D",
+              border: "#86EFAC",
+              bg: "#F0FDF4",
             },
           };
 
@@ -274,118 +312,222 @@ const DataTable = ({
         },
       },
       {
-        field: "suggestion",
-        headerName: "ข้อร้องเรียน/ข้อเสนอแนะ",
-        minWidth: 150,
-        align: "center",
-        headerAlign: "center",
-        flex: 1,
-        renderCell: (params) => {
-          const letter = params.value;
-
-          if (!letter) return "-";
-
-          const severity = severityLevels[letter];
-
-          if (!severity) return "-";
-
-          const isSuggestion = ["C", "D", "E", "F", "G", "H", "I"].includes(
-            letter,
-          );
-
-          return (
-            <Tooltip title={`${letter} : ${severity?.label || "-"}`} arrow>
-              <Box
-                sx={{
-                  position: "relative",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  cursor: "help",
-                }}
-              >
-                <Chip
-                  label={!isSuggestion ? "ข้อเสนอแนะ" : "ข้อร้องเรียน"}
-                  color={!isSuggestion ? "success" : "error"}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    fontWeight: 600,
-                    pr: 1,
-                  }}
-                />
-
-                {/* badge */}
-                <Box
-                  sx={{
-                    position: "absolute",
-
-                    top: -8,
-                    right: -8,
-
-                    width: 22,
-                    height: 22,
-
-                    borderRadius: "50%",
-
-                    bgcolor: severity.bg,
-                    color: severity.color,
-                    border: `2px solid ${severity.color}`,
-
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-
-                    fontWeight: 800,
-                    fontSize: 12,
-
-                    zIndex: 2,
-                  }}
-                >
-                  {letter}
-                </Box>
-              </Box>
-            </Tooltip>
-          );
-        },
-      },
+         field: "suggestion",
+         ...makeHeader("suggestion", "ข้อร้องเรียน/ข้อเสนอแนะ"),
+         minWidth: 150,
+         align: "center",
+         headerAlign: "center",
+         flex: 1,
+       
+         renderCell: (params) => {
+           const row = params.row;
+       
+           // ความเสี่ยงทางคลินิก A-I
+         const letter = String(row.suggestion ?? "").toUpperCase();
+     
+     const clinical = severityLevels.find(
+       (item) => item.code === letter
+     );
+       
+           const isSuggestion = ["A", "B"].includes(letter);
+       
+           // ความเสี่ยงทั่วไป ระดับ 1-5
+           const generalLevel = String(row.generalRiskLevel ?? "");
+           const general = generalRiskOptions.find(
+             (item) => String(item.value) === generalLevel
+           );
+       
+           // แสดงตาม Checkbox ที่ถูกเลือก
+           const showClinical =
+             Number(row.clinicalRisk) === 1 && !!clinical;
+       
+           const showGeneral =
+             Number(row.generalRisk) === 1 && !!general;
+       
+           if (!showClinical && !showGeneral) {
+             return <Typography color="text.secondary">-</Typography>;
+           }
+       
+           return (
+             <Box
+               sx={{
+                 display: "flex",
+                 alignItems: "center",
+                 justifyContent: "center",
+                 flexWrap: "wrap",
+                 gap: 1.5,
+                 py: 1,
+               }}
+             >
+               {/* ความเสี่ยงทั่วไป */}
+               {showGeneral && (
+                 <Tooltip
+                   title={`ระดับ ${general.value}: ${general.label}`}
+                   arrow
+                 >
+                   <Box
+                     sx={{
+                       position: "relative",
+                       display: "inline-flex",
+                       alignItems: "center",
+                     }}
+                   >
+                     <Chip
+                       label="ความเสี่ยงทั่วไป"
+                       size="small"
+                       sx={{
+                         height: 36,
+                         borderRadius: "999px",
+                         px: 1,
+                         fontWeight: 700,
+                         fontSize: 12,
+                         color: general.color,
+                         bgcolor: general.bg,
+                         border: `1px solid ${general.color}`,
+                       }}
+                     />
+       
+                     <Box
+                       sx={{
+                         position: "absolute",
+                         top: -7,
+                         right: -7,
+                         minWidth: 24,
+                         height: 24,
+                         px: 0.5,
+                         borderRadius: "50%",
+                         display: "flex",
+                         alignItems: "center",
+                         justifyContent: "center",
+                         bgcolor: general.color,
+                         color: "#fff",
+                         border: "2px solid #fff",
+                         fontWeight: 800,
+                         fontSize: 12,
+                         zIndex: 1,
+                       }}
+                     >
+                       {general.value}
+                     </Box>
+                   </Box>
+                 </Tooltip>
+               )}
+       
+               {/* ความเสี่ยงทางคลินิก */}
+               {showClinical && (
+                 <Tooltip
+                   title={`${letter}: ${clinical.label}`}
+                   arrow
+                 >
+                   <Box
+                     sx={{
+                       position: "relative",
+                       display: "inline-flex",
+                       alignItems: "center",
+                     }}
+                   >
+                     <Chip
+                       label={isSuggestion ? "ข้อเสนอแนะ" : "ข้อร้องเรียน"}
+                       size="small"
+                       sx={{
+                         height: 36,
+                         borderRadius: "999px",
+                         px: 1,
+                         fontWeight: 700,
+                         fontSize: 12,
+                         color: isSuggestion ? "#16835D" : "#E33446",
+                         bgcolor: isSuggestion ? "#ECFDF5" : "#FFF1F2",
+                         border: `1px solid ${
+                           isSuggestion ? "#A7F3D0" : "#FECDD3"
+                         }`,
+                       }}
+                     />
+       
+                     <Box
+                       sx={{
+                         position: "absolute",
+                         top: -7,
+                         right: -7,
+                         minWidth: 24,
+                         height: 24,
+                         px: 0.5,
+                         borderRadius: "50%",
+                         display: "flex",
+                         alignItems: "center",
+                         justifyContent: "center",
+                         bgcolor: clinical.color,
+                         color: "#fff",
+                         border: "2px solid #fff",
+                         fontWeight: 800,
+                         fontSize: 12,
+                         zIndex: 1,
+                       }}
+                     >
+                       {letter}
+                     </Box>
+                   </Box>
+                 </Tooltip>
+               )}
+             </Box>
+           );
+         },
+       },
       {
         field: "summary",
-        headerName: "วันที่ร้องเรียน",
+        ...makeHeader("summary", "วันที่ร้องเรียน"),
         minWidth: 190,
 
         align: "center",
         headerAlign: "center",
         renderCell: (params) => {
           const row = params.row;
-          const typeLabel = typeMap[row.type];
 
           return (
-            <Box sx={{ width: "100%", py: 0.5 }}>
-              {/* 🔹 บรรทัดที่ 1 */}
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Chip label={typeLabel} size="small" color="primary" />
-
+            <Stack spacing={0.6} sx={{ py: 0.5 }}>
+              <Stack
+                direction="row"
+                spacing={0.8}
+                alignItems="center"
+                flexWrap="wrap"
+              >
                 <Chip
-                  label={`วันที่: ${dayjs(row.date).format("DD/MM/YYYY")}`}
+                  label={typeMap[row.type] ?? "-"}
                   size="small"
-                  variant="outlined"
-                  sx={{ opacity: 0.85 }}
+                  sx={{
+                    bgcolor: "#E0F2FE",
+                    color: "#0284C7",
+                    fontWeight: 800,
+                    height: 28,
+                    borderRadius: "999px",
+                  }}
                 />
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <CalendarMonthRounded
+                    sx={{ fontSize: 16, color: "#7890B2" }}
+                  />
+                  <Typography sx={{ color: "#647A99", fontSize: 13 }}>
+                    {row.date ? dayjs(row.date).format("DD/MM/YYYY") : "-"}
+                  </Typography>
+                </Stack>
               </Stack>
 
-              <Box sx={{ fontSize: 12, color: "#666", mt: 0.5 }}>
-                ผู้บันทึก : 👤 {row.requestby}
-              </Box>
-
-              {/* 🔹 บรรทัดที่ 2 */}
-            </Box>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  color: "#71829B",
+                  lineHeight: 1.5,
+                }}
+              >
+                <strong>ผู้บันทึก :</strong> {row.requestby || "-"}
+              </Typography>
+            </Stack>
           );
         },
       },
 
       {
         field: "complaints",
-        headerName: "แหล่งที่มา",
+        ...makeHeader("complaints", "แหล่งที่มา"),
         minWidth: 120,
         maxWidth: 160,
         flex: 0.8,
@@ -411,7 +553,7 @@ const DataTable = ({
 
       {
         field: "deptrelate",
-        headerName: "แผนกที่ถูกร้องเรียน",
+        ...makeHeader("deptrelate", "แผนกที่ถูกร้องเรียน"),
         minWidth: 120,
         align: "left",
         headerAlign: "center",
@@ -471,27 +613,37 @@ const DataTable = ({
           );
         },
       },
-    {
+     {
       field: "managementremark",
-      headerName: "สรุปสาระที่ร้องเรียน",
+      ...makeHeader("managementremark", "สรุปสาระที่ร้องเรียน"),
       minWidth: 180,
       flex: 1.5,
       headerAlign: "center",
-      renderCell: (params) => (
-        <ExpandableTextCell
-          value={params.value}
-          onClick={(text) =>
-            setSelectedText({
-              text,
-              reportId: params.row.reportid,
-            })
-          }
-        />
-      ),
+    
+      renderCell: (params) => {
+        // ให้ managementremark มาก่อน ถ้าไม่มีใช้ summarize แทน
+        const value =
+          params.row.managementremark?.trim() ||
+          params.row.summarize?.trim() ||
+          "";
+    
+        return (
+          <ExpandableTextCell
+            value={value}
+            onClick={(text) =>
+              setSelectedText({
+                text,
+               summarize: params.row.summarize,
+                reportId: params.row.reportid,
+              })
+            }
+          />
+        );
+      },
     },
       {
         field: "involved",
-        headerName: "ตอบกลับ",
+        ...makeHeader("involved", "ตอบกลับ"),
         minWidth: 60,
         align: "center",
         headerAlign: "center",
@@ -518,52 +670,14 @@ const DataTable = ({
       },
       {
         field: "risk",
-        headerName: "สถานะ",
+        ...makeHeader("risk", "สถานะ"),
         minWidth: 150,
         align: "center",
         headerAlign: "center",
 
         renderCell: (params) => {
-          const risk = params.value;
+          const risk = params.row.risk;
           const rowStatus = String(params.row.status);
-
-          const statusMap = {
-            null: {
-              label: "ข้อร้องเรียนใหม่",
-              tooltip: "ยังไม่มีการดำเนินการ",
-              icon: <Circle size={14} />,
-              color: "#DC2626",
-              border: "#7F1D1D",
-              bg: "#FEE2E2",
-            },
-
-            1: {
-              label: "รอตอบกลับ",
-              tooltip: "อยู่ระหว่างรอหน่วยงานตอบกลับ",
-              icon: <Clock3 size={14} />,
-              color: "#475569",
-              border: "#334155",
-              bg: "#F1F5F9",
-            },
-
-            2: {
-              label: "ตอบกลับเรียบร้อย",
-              tooltip: "หน่วยงานตอบกลับเรียบร้อยแล้ว",
-              icon: <MessageSquareText size={14} />,
-              color: "#0284C7",
-              border: "#075985",
-              bg: "#E0F2FE",
-            },
-
-            3: {
-              label: "วิเคราะห์แล้ว",
-              tooltip: "ดำเนินการวิเคราะห์เสร็จสิ้น",
-              icon: <CheckCircle2 size={14} />,
-              color: "#16A34A",
-              border: "#14532D",
-              bg: "#DCFCE7",
-            },
-          };
 
           if (rowStatus === "0") {
             return (
@@ -571,30 +685,15 @@ const DataTable = ({
                 <Chip
                   icon={<CircleX size={15} />}
                   label="ไม่ใช่ข้อร้องเรียน"
-                  variant="outlined"
                   size="small"
                   sx={{
-                    height: 34,
-                    minWidth: 145,
+                    height: 36,
                     borderRadius: "999px",
-
                     bgcolor: "#FFF7ED",
                     color: "#EA580C",
-                    border: "1px solid #C2410C",
-
-                    fontWeight: 700,
-                    fontSize: "0.82rem",
-
-                    "& .MuiChip-icon": {
-                      color: "#DC2626",
-                      marginLeft: "8px",
-                    },
-
-                    "&:hover": {
-                      bgcolor: "#FEE2E2",
-                      transform: "translateY(-1px)",
-                      boxShadow: "0 3px 10px rgba(220,38,38,.15)",
-                    },
+                    border: "1px solid #FED7AA",
+                    fontWeight: 800,
+                    "& .MuiChip-icon": { color: "#EA580C" },
                   }}
                 />
               </Tooltip>
@@ -602,43 +701,30 @@ const DataTable = ({
           }
 
           const status =
-            risk === null || risk === undefined
-              ? statusMap.null
-              : statusMap[risk] || statusMap.null;
+            riskStatuses[risk == null ? "null" : String(risk)] ??
+            riskStatuses.null;
 
           return (
             <Tooltip title={status.tooltip} arrow>
               <Chip
                 icon={status.icon}
                 label={status.label}
-                variant="outlined"
                 size="small"
                 sx={{
-                  height: 34,
-                  minWidth: 145,
-
+                  height: 37,
+                  minWidth: 155,
                   borderRadius: "999px",
-
                   bgcolor: status.bg,
                   color: status.color,
                   border: `1px solid ${status.border}`,
-
-                  fontWeight: 700,
-                  fontSize: "0.82rem",
-                  letterSpacing: ".2px",
-
-                  transition: ".2s",
-
+                  fontWeight: 800,
+                  fontSize: 12,
                   "& .MuiChip-icon": {
                     color: status.color,
-                    marginLeft: "8px",
+                    ml: 1,
+                    fontSize: 17,
                   },
-
-                  "&:hover": {
-                    bgcolor: status.bg,
-                    transform: "translateY(-1px)",
-                    boxShadow: "0 3px 10px rgba(0,0,0,.08)",
-                  },
+                  "& .MuiChip-label": { px: 1.5 },
                 }}
               />
             </Tooltip>
@@ -649,7 +735,7 @@ const DataTable = ({
       {
         field: "actions",
         type: "actions",
-        headerName: "จัดการ",
+        ...makeHeader("actions", "จัดการ"),
         minWidth: 60,
         cellClassName: "actions",
         align: "center",
@@ -658,26 +744,41 @@ const DataTable = ({
           const { id, row } = params;
 
           const risk = row.risk;
-          if (risk == "3") {
+          if (risk == "4") {
             return (
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, 36px)",
-                  gridAutoRows: "36px",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: "100%",
-                  height: "100%",
-                }}
-              >
+                <Box
+                                            sx={{
+                                              display: "grid",
+                                              gridTemplateColumns: "repeat(2, 46px)",
+                                              gridAutoRows: "46px",
+                                              justifyContent: "center",
+                                              alignItems: "center",
+                                              width: "100%",
+                                              height: "100%",
+                                            }}
+                                          >
                 {" "}
-                <Tooltip title="ดูสรุปประเด็นทั้งหมด">
+                <Tooltip title="ดูสถานะทั้งหมด">
                   <GridActionsCellItem
                     icon={<VisibilityIcon />}
                     label="บันทึกการจัดการของเจ้าหน้าที่่"
                     onClick={() => handleViewClickSummary(id, row)}
                     color="success"
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #86CDA5",
+                      borderRadius: "50%",
+                      bgcolor: "#ECFDF3",
+                      color: "#16A34A",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "#16A34A",
+                        color: "#FFFFFF",
+                        borderColor: "#16A34A",
+                        boxShadow: "0 4px 12px rgba(22, 163, 74, 0.22)",
+                      },
+                    }}
                   />
                 </Tooltip>
                 <Tooltip title="ยกเลิกรายการ">
@@ -686,6 +787,21 @@ const DataTable = ({
                     label="ยกเลิกรายการ"
                     onClick={() => handleDeleteClick(id, row)}
                     color="error"
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #FCA5A5",
+                      borderRadius: "50%",
+                      bgcolor: "#FEF2F2",
+                      color: "#DC2626",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "#DC2626",
+                        color: "#FFFFFF",
+                        borderColor: "#DC2626",
+                        boxShadow: "0 4px 12px rgba(220, 38, 38, 0.22)",
+                      },
+                    }}
                   />
                 </Tooltip>
                 {isAdmin && (
@@ -695,31 +811,61 @@ const DataTable = ({
                       label="แก้ไขสถานะ"
                       onClick={() => handleUpdateStatusClick(id, row)}
                       color="info"
+                      sx={{
+                        width: 38,
+                        height: 38,
+                        border: "1px solid #FACC15",
+                        borderRadius: "50%",
+                        bgcolor: "#FEFCE8",
+                        color: "#CA8A04",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: "#FACC15",
+                          color: "#713F12",
+                          borderColor: "#EAB308",
+                          boxShadow: "0 4px 12px rgba(250, 204, 21, 0.35)",
+                        },
+                      }}
                     />
                   </Tooltip>
                 )}
               </Box>
             );
           }
-          if (risk == "1" || risk == "2") {
+          if (risk == "1" || risk == "2" || risk == "3") {
             return (
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, 36px)",
-                  gridAutoRows: "36px",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: "100%",
-                  height: "100%",
-                }}
-              >
-                <Tooltip title="ดูสรุปประเด็นทั้งหมด">
+                <Box
+                                            sx={{
+                                              display: "grid",
+                                              gridTemplateColumns: "repeat(2, 46px)",
+                                              gridAutoRows: "46px",
+                                              justifyContent: "center",
+                                              alignItems: "center",
+                                              width: "100%",
+                                              height: "100%",
+                                            }}
+                                          >
+                <Tooltip title="ดูสถานะทั้งหมด">
                   <GridActionsCellItem
                     icon={<VisibilityIcon />}
                     label="บันทึกการจัดการของเจ้าหน้าที่่"
                     onClick={() => handleViewClickSummary(id, row)}
                     color="success"
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #86CDA5",
+                      borderRadius: "50%",
+                      bgcolor: "#ECFDF3",
+                      color: "#16A34A",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "#16A34A",
+                        color: "#FFFFFF",
+                        borderColor: "#16A34A",
+                        boxShadow: "0 4px 12px rgba(22, 163, 74, 0.22)",
+                      },
+                    }}
                   />
                 </Tooltip>
                 <Tooltip title="บันทึกการแก้ไข">
@@ -728,6 +874,21 @@ const DataTable = ({
                     label="บันทึกการแก้ไข"
                     onClick={() => handleEditClick(id, row)}
                     color="warning"
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #FDBA74",
+                      borderRadius: "50%",
+                      bgcolor: "#FFF7ED",
+                      color: "#EA580C",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "#EA580C",
+                        color: "#FFFFFF",
+                        borderColor: "#EA580C",
+                        boxShadow: "0 4px 12px rgba(234, 88, 12, 0.22)",
+                      },
+                    }}
                   />
                 </Tooltip>
                 <Tooltip title="ยกเลิกรายการ">
@@ -736,6 +897,21 @@ const DataTable = ({
                     label="ยกเลิกรายการ"
                     onClick={() => handleDeleteClick(id, row)}
                     color="error"
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #FCA5A5",
+                      borderRadius: "50%",
+                      bgcolor: "#FEF2F2",
+                      color: "#DC2626",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "#DC2626",
+                        color: "#FFFFFF",
+                        borderColor: "#DC2626",
+                        boxShadow: "0 4px 12px rgba(220, 38, 38, 0.22)",
+                      },
+                    }}
                   />
                 </Tooltip>
                 {isAdmin && (
@@ -745,6 +921,21 @@ const DataTable = ({
                       label="แก้ไขสถานะ"
                       onClick={() => handleUpdateStatusClick(id, row)}
                       color="info"
+                      sx={{
+                        width: 38,
+                        height: 38,
+                        border: "1px solid #FACC15",
+                        borderRadius: "50%",
+                        bgcolor: "#FEFCE8",
+                        color: "#CA8A04",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: "#FACC15",
+                          color: "#713F12",
+                          borderColor: "#EAB308",
+                          boxShadow: "0 4px 12px rgba(250, 204, 21, 0.35)",
+                        },
+                      }}
                     />
                   </Tooltip>
                 )}
@@ -753,22 +944,37 @@ const DataTable = ({
           } else {
             return (
               <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, 36px)",
-                  gridAutoRows: "36px",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: "100%",
-                  height: "100%",
-                }}
-              >
-                <Tooltip title="ดูสรุปประเด็นทั้งหมด">
+                                          sx={{
+                                            display: "grid",
+                                            gridTemplateColumns: "repeat(2, 46px)",
+                                            gridAutoRows: "46px",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                            width: "100%",
+                                            height: "100%",
+                                          }}
+                                        >
+                <Tooltip title="ดูสถานะทั้งหมด">
                   <GridActionsCellItem
                     icon={<VisibilityIcon />}
                     label="บันทึกการจัดการของเจ้าหน้าที่่"
                     onClick={() => handleViewClickSummary(id, row)}
                     color="success"
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #86CDA5",
+                      borderRadius: "50%",
+                      bgcolor: "#ECFDF3",
+                      color: "#16A34A",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "#16A34A",
+                        color: "#FFFFFF",
+                        borderColor: "#16A34A",
+                        boxShadow: "0 4px 12px rgba(22, 163, 74, 0.22)",
+                      },
+                    }}
                   />
                 </Tooltip>
                 <Tooltip title="บันทึกการจัดการของเจ้าหน้าที่่">
@@ -777,6 +983,21 @@ const DataTable = ({
                     label="บันทึกการจัดการของเจ้าหน้าที่่"
                     onClick={() => handleViewClick(id, row)}
                     color="primary"
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #8AB4F8",
+                      borderRadius: "50%",
+                      bgcolor: "#EFF6FF",
+                      color: "#2563EB",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "#2563EB",
+                        color: "#FFFFFF",
+                        borderColor: "#2563EB",
+                        boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)",
+                      },
+                    }}
                   />
                 </Tooltip>
                 <Tooltip title="ยกเลิกรายการ">
@@ -785,6 +1006,21 @@ const DataTable = ({
                     label="ยกเลิกรายการ"
                     onClick={() => handleDeleteClick(id, row)}
                     color="error"
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #FCA5A5",
+                      borderRadius: "50%",
+                      bgcolor: "#FEF2F2",
+                      color: "#DC2626",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "#DC2626",
+                        color: "#FFFFFF",
+                        borderColor: "#DC2626",
+                        boxShadow: "0 4px 12px rgba(220, 38, 38, 0.22)",
+                      },
+                    }}
                   />
                 </Tooltip>
                 {isAdmin && (
@@ -794,6 +1030,21 @@ const DataTable = ({
                       label="แก้ไขสถานะ"
                       onClick={() => handleUpdateStatusClick(id, row)}
                       color="info"
+                      sx={{
+                        width: 38,
+                        height: 38,
+                        border: "1px solid #FACC15",
+                        borderRadius: "50%",
+                        bgcolor: "#FEFCE8",
+                        color: "#CA8A04",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: "#FACC15",
+                          color: "#713F12",
+                          borderColor: "#EAB308",
+                          boxShadow: "0 4px 12px rgba(250, 204, 21, 0.35)",
+                        },
+                      }}
                     />
                   </Tooltip>
                 )}
@@ -837,7 +1088,6 @@ const DataTable = ({
 
   // Load pagination and sort settings from localStorage on mount
 
-
   const handlePaginationChange = (model) => {
     setPaginationModel(model);
     localStorage.setItem("pagination", JSON.stringify(model));
@@ -871,9 +1121,7 @@ const DataTable = ({
         onPaginationModelChange={handlePaginationChange}
         sortModel={sortModel}
         onSortModelChange={handleSortModelChange}
-        getRowClassName={(params) =>
-          params.indexRelativeToCurrentPage % 2 === 0 ? "even-row" : "odd-row"
-        }
+        getRowClassName={getRowClassName}
         localeText={{
           toolbarColumns: "คอลัมน์",
           toolbarFilters: "ตัวกรอง",
@@ -897,72 +1145,155 @@ const DataTable = ({
           },
         }}
         sx={{
-          "&.MuiDataGrid-root--densityCompact .MuiDataGrid-cell": { py: 1 },
-          "&.MuiDataGrid-root--densityStandard .MuiDataGrid-cell": {
-            py: "15px",
-          },
-          "&.MuiDataGrid-root--densityComfortable .MuiDataGrid-cell": {
-            py: "22px",
-          },
-          "& .MuiDataGrid-cell": { alignItems: "flex-start" },
           border: "none",
+          color: "#425466",
+          fontSize: 13,
+          bgcolor: "#FFFFFF",
+
           "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: "#FAFAFA",
-            fontWeight: 600,
+            bgcolor: "#EAF4F1",
+            borderBottom: "1px solid #DCEAE4",
+            minHeight: "56px !important",
+            maxHeight: "56px !important",
           },
-          "& .MuiDataGrid-row:hover": {
-            backgroundColor: "#F5F7FA",
+
+          "& .MuiDataGrid-columnHeader": {
+            bgcolor: "#EAF4F1",
+            px: 1.5,
+            "&:focus, &:focus-within": { outline: "none" },
           },
+
+          "& .MuiDataGrid-columnHeaderTitle": {
+            fontWeight: 800,
+          },
+
+          "& .MuiDataGrid-iconSeparator": {
+            display: "none",
+          },
+
+          "& .MuiDataGrid-row": {
+            position: "relative",
+            borderBottom: "1px solid #EAF0ED",
+            minHeight: "78px !important",
+            bgcolor: "#FFFFFF",
+            transition: "background-color .18s ease",
+
+            "&:hover": {
+              bgcolor: "#F6FAF8",
+            },
+
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              left: 0,
+              top: "12%",
+              bottom: "12%",
+              width: "5px",
+              borderRadius: "8px",
+              bgcolor: "#DC2626",
+              zIndex: 2,
+            },
+
+            "&.row-completed::before": {
+              bgcolor: "#16A36A",
+            },
+
+                "&.completed-row::before": {
+              bgcolor: "transparent",
+            },
+            "&.row-step3::before": {
+              bgcolor: "#0EA5E9",
+            },
+            "&.row-step2::before": {
+              bgcolor: "#516873ff",
+            },
+
+            "&.row-neutral::before": {
+              bgcolor: "#EA580C",
+            },
+          },
+
           "& .MuiDataGrid-cell": {
-            alignItems: "flex-start",
-            py: 1.5,
-          },
-          "& .MuiTablePagination-root": {
+            borderBottom: "none",
+            px: 1.5,
+            py: 1.1,
             display: "flex",
             alignItems: "center",
-          },
-          "& .MuiTablePagination-toolbar": {
-            alignItems: "center",
-          },
-          "& .MuiTablePagination-selectLabel": {
-            marginBottom: 0,
-          },
-          "& .MuiTablePagination-displayedRows": {
-            marginBottom: 0,
-          },
-          "& .MuiInput-underline:after": {
-            borderBottomColor: "#166534", // ตอน focus
-          },
-          "& .MuiInput-underline:before": {
-            borderBottomColor: "#d1d5db", // ตอนปกติ
-          },
-          "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-            borderBottomColor: "#166534", // ตอน hover
-          },
-          "& .MuiDataGrid-cell": {
-            px: 0, // เอา padding ซ้ายขวาออก
-          },
-          "& .MuiDataGrid-columnHeader": {
-            px: 0,
-          },
-          "& .MuiLinearProgress-root": {
-            height: 4,
-            backgroundColor: "#dbeafe",
+            whiteSpace: "normal",
+            lineHeight: 1.6,
+            "&:focus, &:focus-within": {
+              outline: "none",
+            },
           },
 
-          "& .MuiLinearProgress-bar": {
-            backgroundColor: "#0284c7",
+          "& .MuiDataGrid-cellContent": {
+            whiteSpace: "normal",
           },
+
+          "& .MuiDataGrid-footerContainer": {
+            borderTop: "1px solid #E8EFEB",
+            minHeight: 58,
+            bgcolor: "#FFFFFF",
+          },
+
+          "& .MuiTablePagination-root": {
+            color: "#64748B",
+            fontSize: 12,
+          },
+
+          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+            {
+              fontSize: 12,
+            },
+
+          "& .MuiDataGrid-overlay": {
+            bgcolor: "rgba(255,255,255,.9)",
+          },
+
+          "& .MuiDataGrid-scrollbarFiller": {
+            bgcolor: "#EAF4F1",
+          },
+
+          "& .MuiDataGrid-virtualScroller": {
+            overflowX: "auto",
+          },
+
+          "& .MuiDataGrid-cell--textLeft": {
+            justifyContent: "flex-start",
+          },
+
+          "& .MuiDataGrid-actionsCell": {
+            gap: 0.1,
+          },
+
+          "& .MuiDataGrid-actionsCell .MuiIconButton-root": {
+            borderRadius: "9px",
+            p: 0.8,
+          },
+              "& .completed-row": {
+  backgroundColor: "#F8FCF9",
+  color: "#374151",
+  opacity: 1,
+  transition: "background-color 0.2s ease",
+
+  "&:hover": {
+    backgroundColor: "#EFF8F1",
+  },
+
+  "&::before": {
+    backgroundColor: "transparent",
+  },
+},
         }}
       />
-       <TextDetailDialog
-  open={Boolean(selectedText)}
-  onClose={() => setSelectedText(null)}
-  title="สรุปสาระที่ร้องเรียน"
-  text={selectedText?.text}
-  reportId={selectedText?.reportId}
-/>
-
+      <TextDetailDialog
+        open={Boolean(selectedText)}
+        onClose={() => setSelectedText(null)}
+        title="สรุปสาระที่ร้องเรียน"
+        text={selectedText?.text}
+          summarize={selectedText?.summarize}
+        reportId={selectedText?.reportId}
+      />
     </>
   );
 };

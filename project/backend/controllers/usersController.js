@@ -328,7 +328,25 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ message: "An error occurred while resetting the password." });
   }
 };
+const deleteUser = async (req, res) => {
+  
+  const userId = req?.body?.userid;
+  if (!userId) return res.status(400).json({ message: "User ID required" });
 
+  try {
+    const user = await User.findOne({ where: { userid: userId } });
+    if (!user) {
+      return res.status(204).json({ message: `User ID ${userId} not found` });
+    }
+ //   user.deleteAt = sequelize.fn('GETDATE');
+  //  await user.save();
+  const result = await User.destroy({ where: { userid: userId } });
+    res.status(201).json({ message: `User ID ${userId} deleted successfully` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "An error car." });
+  }
+};
 module.exports = {
   createUser,
   getAllUsers,
@@ -336,4 +354,5 @@ module.exports = {
   updateUser,
   resetPassword,
   getAllUsersFaction,
+  deleteUser
 };

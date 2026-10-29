@@ -83,7 +83,7 @@ const Dashboard = () => {
 
     requestData("DATA4", {
       formStatus: "3",
-      risks: ["2", "3"],
+      risks: ["2", "3", "4"],
 
       reportNo,
       hn,
@@ -378,7 +378,15 @@ const Dashboard = () => {
                   onChangeDocNo={(e) => setReportNo(e.target.value)}
                   onChangeHN={(e) => setHn(e.target.value)}
                   onChangeDate={(e) => setStartDate(e.target.value)}
-                  onChangeStatus={(e) => setStatus(e.target.value)}
+                                  onChangeStatus={(e) => {
+  const value = e.target.value;
+
+  setStatus(
+    value === "__NULL__"
+      ? null
+      : value
+  );
+}}
                   onChangeSeverity={(e) => setSeverity(e.target.value)}
                   onChangePatientType={(e) => setPatientType(e.target.value)}
                 />

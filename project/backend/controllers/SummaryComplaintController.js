@@ -134,7 +134,7 @@ const result2 = await personcomplaint.create({
         const newFilename = `OCC${reportId}${fileExt}`;
         const oldPath = file.path;
         const newPath = path.join(__dirname, process.env.DB_STORE2, newFilename);
-        console.log("newPath1", newPath);
+   
         
         return new Promise((resolve, reject) => {
           fs.rename(oldPath, newPath, async (err) => {

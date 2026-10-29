@@ -30,13 +30,13 @@ const patientTypeOptions = [
 ];
 
 const statusOptions = [
-    { value: "", label: "ทั้งหมด" },
-    { value: null, label: "ข้อร้องเรียนใหม่" },
-    { value: 1, label: "รอตอบกลับ" },
-     { value: 2, label: "ตอบกลับเรียบร้อย" },
-    { value: 3, label: "วิเคราะห์แล้ว" },
+  { value: "", label: "ทั้งหมด" },
+  { value: "__NULL__", label: "ข้อร้องเรียนใหม่" },
+  { value: "1", label: "รอตอบกลับ" },
+  { value: "2", label: "ตอบกลับเรียบร้อย" },
+  { value: "3", label: "วิเคราะห์แล้ว" },
+  { value: "5", label: "ไม่ใช่ข้อร้องเรียน" },
 ];
-
 const filterFields = [
   {
     key: "docNo",
@@ -93,17 +93,17 @@ const filterFields = [
       <label className="filter-label">{field.label}</label>
 
       {field.type === "select" ? (
-        <Form.Select
-          value={field.value}
-          onChange={field.onChange}
-          className="filter-input"
-        >
-          {field.options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Form.Select>
+    <Form.Select
+  value={field.value ?? ""}
+  onChange={field.onChange}
+  className="filter-input"
+>
+  {field.options.map((option) => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
+</Form.Select>
       ) : (
         <Form.Control
           type={field.type}

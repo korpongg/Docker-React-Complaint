@@ -180,7 +180,7 @@ const RiskManagement = sequelize.define('RiskManagement', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  activefailure: {
+  remark: {
     type: DataTypes.TEXT,
     allowNull: true
   },
@@ -230,7 +230,7 @@ const RiskManagement = sequelize.define('RiskManagement', {
   },
 
 complainant: {
-    type: DataTypes.STRING(1),
+     type: DataTypes.STRING(20),
     allowNull: true
   },
 
@@ -238,10 +238,10 @@ complainant: {
     type: DataTypes.STRING(1),
     allowNull: true
   },
-  responseDueDate :{
-     type: DataTypes.DATE,
-    allowNull: true
-  }
+responseDueDate: {
+  type: DataTypes.DATEONLY,
+  allowNull: true,
+},
 }, {
   tableName: 'RiskManagement',
   timestamps: false // Disable automatic timestamps

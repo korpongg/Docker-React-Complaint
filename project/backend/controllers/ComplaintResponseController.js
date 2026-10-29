@@ -236,8 +236,14 @@ exports.getComplaintById = async (req, res) => {
   try {
     // First query to get complaints and user details
     const occQuery = `
- SELECT TOP 1 com.*
+ SELECT TOP 1
+    com.*,
+    rm.complainant,
+    rm.problem,
+    rm.responseDueDate
   FROM ${DB_NAME}.[dbo].[ComplaintResponse] com
+  LEFT JOIN [Complaint].[dbo].[RiskManagement] rm
+    ON rm.reportid = com.reportid
   WHERE com.reportid = :reportid
   ORDER BY com.id DESC;
     `;
@@ -425,7 +431,7 @@ exports.updateComplaint = async (req, res) => {
           const newFilename = `OCC${req.body.reportid}${fileExt}`;
           const oldPath = file.path;
           const newPath = path.join(__dirname, process.env.DB_STORE2, newFilename);
-          console.log("newPath2", newPath);
+       
 
           return new Promise((resolve, reject) => {
             fs.rename(oldPath, newPath, async (err) => {

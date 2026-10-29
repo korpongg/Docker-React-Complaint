@@ -10,16 +10,16 @@ import GlobalFilter from "../../GlobalFilter";
 import { GloballFilterStyle } from "../../../styles/GloballFilter.style";
 import DataTable from "./DataTable";
 
-
+import { exportComplaintExcel } from "../../../utils/exportExcel";
 import {
   BadgeAlert,
 } from "lucide-react";
 import { DashboardBox } from "../../../styles/Dashboard.style";
 
 import { createGlobalStyle } from "styled-components";
-import { Container, Stack, Paper, Typography, Box ,Chip} from "@mui/material";
+import { Container, Stack, Paper, Typography, Box, Chip ,Button} from "@mui/material";
 import { red } from "@mui/material/colors";
-
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 export const GlobalStyle = createGlobalStyle`
   * {
     font-family: "Mali", sans-serif !important;
@@ -71,6 +71,7 @@ const Dashboard = () => {
 
   const [patientType, setPatientType] = useState("");
   const [statusfilter, setStatus] = useState("");
+
   const [severity, setSeverity] = useState("");
 
   const [endDate, setEndDate] = useState("");
@@ -374,6 +375,7 @@ display: "flex",
               </Box>{" "}
         
         <GloballFilterStyle>
+         
               <div className="filter-container">
                 <div className="filter-header">
                   <div className="left">
@@ -391,12 +393,69 @@ display: "flex",
                   onChangeDocNo={(e) => setReportNo(e.target.value)}
                   onChangeHN={(e) => setHn(e.target.value)}
                   onChangeDate={(e) => setStartDate(e.target.value)}
-                   onChangeStatus={(e) => setStatus(e.target.value)}
+                  onChangeStatus={(e) => {
+  const value = e.target.value;
+
+  setStatus(
+    value === "__NULL__"
+      ? null
+      : value
+  );
+}}
                   onChangeSeverity={(e) => setSeverity(e.target.value)}
                   onChangePatientType={(e) => setPatientType(e.target.value)}
                 />
               </div>
+              
             </GloballFilterStyle>
+              <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Button
+              variant="contained"
+              onClick={() => exportComplaintExcel(dashboard)}
+              sx={{
+                background: "linear-gradient(135deg,#166534,#22C55E)",
+                color: "#fff",
+          
+                px: 3,
+                py: 1.2,
+          
+                borderRadius: "14px",
+          
+                fontWeight: 700,
+                fontSize: "0.95rem",
+          
+                boxShadow:
+                  "0 8px 20px rgba(22,101,52,0.25)",
+          
+                transition: "all .25s ease",
+          
+                "&:hover": {
+                  background:
+                    "linear-gradient(135deg,#14532D,#16A34A)",
+          
+                  transform:
+                    "translateY(-2px)",
+          
+                  boxShadow:
+                    "0 12px 25px rgba(22,101,52,0.35)",
+                },
+          
+                "&:active": {
+                  transform:"scale(.96)"
+                }
+          
+              }}
+            >
+             <FileDownloadIcon/> Export Excel
+            </Button>
+          </Box>
             <Paper
               elevation={2}
               sx={{ borderRadius: 2, p: 1.5, borderTop: "5px solid #DC2626" }}

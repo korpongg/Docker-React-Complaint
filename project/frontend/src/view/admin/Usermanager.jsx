@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styled from "styled-components";
-
+import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
@@ -13,7 +13,7 @@ import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
 import { Snackbar } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
-
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import EditIcon from "@mui/icons-material/Edit";
 import KeyIcon from "@mui/icons-material/KeyRounded";
 import SaveIcon from "@mui/icons-material/Save";
@@ -259,7 +259,7 @@ export default function UserManager() {
 
       case "2":
         return {
-          label: "HA",
+          label: "QDC",
           color: "#16a34a",
           background: "#f0fdf4",
         };
@@ -366,6 +366,8 @@ export default function UserManager() {
       userid: row.userid || "",
       name: row.name || "",
       lastname: row.lastname || "",
+        dep: row.dep || "",
+  jobtitle: row.jobtitle || "",
       role: String(row.role || "1"),
       level: String(row.level || "1"),
     });
@@ -400,6 +402,8 @@ export default function UserManager() {
                   userid: editUser.userid,
                   name: editUser.name,
                   lastname: editUser.lastname,
+                   dep: editUser.dep,
+          jobtitle: editUser.jobtitle,
                   role: editUser.role,
                   level: editUser.level,
                 }
@@ -489,7 +493,26 @@ export default function UserManager() {
 
     setDialogReset(false);
   };
+  const handleDeleteClick = (id, data) => async () => {
+    const confirmDelete = window.confirm(
+      "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้รายนี้?"
+    );
 
+    if (confirmDelete) {
+          const userData = {
+        userid: id,
+      };
+      
+      try {
+           setRows(rows.filter((row) => row.userid !== id));
+       await axios.delete(`${apiUrl}/users`, { ...config, data: userData });
+     
+   
+      } catch (error) {
+        console.error(`Error deleting user with ID ${id}:`, error);
+      }
+    }
+  };
   /* =========================================================
      Snackbar
   ========================================================= */
@@ -519,16 +542,29 @@ export default function UserManager() {
     {
       field: "name",
       headerName: "ชื่อ",
-      minWidth: 180,
+      minWidth: 150,
       flex: 1,
     },
 
     {
       field: "lastname",
       headerName: "นามสกุล",
-      minWidth: 180,
+      minWidth: 150,
       flex: 1,
     },
+  {
+    field: "dep",
+    headerName: "แผนก",
+    minWidth: 150,
+    flex: 1,
+  },
+
+  {
+    field: "jobtitle",
+    headerName: "ตำแหน่ง",
+    minWidth: 150,
+    flex: 1,
+  },
 
     {
       field: "role",
@@ -628,6 +664,13 @@ export default function UserManager() {
               }
             />
           </Tooltip>,
+           <GridActionsCellItem
+             icon={<DeleteIcon />}
+             label="Delete"
+             // onClick={handleDeleteClick(id)}
+             onClick={handleDeleteClick(row.userid,row)}
+             color="error"
+           />,
         ];
       },
     },
@@ -848,202 +891,239 @@ export default function UserManager() {
           </DialogTitle>
 
           <Divider />
+<DialogContent>
+  <Grid container spacing={2}>
 
-          <DialogContent>
-            {/* User ID */}
+    {/* User ID */}
+    <Grid item xs={12} sm={6}>
+      <TextField
+        fullWidth
+        label="รหัสผู้ใช้งาน"
+        value={editUser.userid}
+        onChange={(e) =>
+          setEditUser({
+            ...editUser,
+            userid: e.target.value,
+          })
+        }
+        margin="normal"
+      />
+    </Grid>
 
-            <TextField
-              fullWidth
-              label="รหัสผู้ใช้งาน"
-              value={editUser.userid}
-              onChange={(e) =>
-                setEditUser({
-                  ...editUser,
-                  userid: e.target.value,
-                })
-              }
-              margin="normal"
-            />
+    {/* Name */}
+    <Grid item xs={12} sm={6}>
+      <TextField
+        fullWidth
+        label="ชื่อ"
+        value={editUser.name}
+        onChange={(e) =>
+          setEditUser({
+            ...editUser,
+            name: e.target.value,
+          })
+        }
+        margin="normal"
+      />
+    </Grid>
 
-            {/* Name */}
+    {/* Last Name */}
+    <Grid item xs={12} sm={6}>
+      <TextField
+        fullWidth
+        label="นามสกุล"
+        value={editUser.lastname}
+        onChange={(e) =>
+          setEditUser({
+            ...editUser,
+            lastname: e.target.value,
+          })
+        }
+        margin="normal"
+      />
+    </Grid>
 
-            <TextField
-              fullWidth
-              label="ชื่อ"
-              value={editUser.name}
-              onChange={(e) =>
-                setEditUser({
-                  ...editUser,
-                  name: e.target.value,
-                })
-              }
-              margin="normal"
-            />
+    {/* Department */}
+    <Grid item xs={12} sm={6}>
+      <TextField
+        fullWidth
+        label="แผนก"
+        value={editUser.dep}
+        onChange={(e) =>
+          setEditUser({
+            ...editUser,
+            dep: e.target.value,
+          })
+        }
+        margin="normal"
+      />
+    </Grid>
 
-            {/* Last Name */}
+    {/* Job Title */}
+    <Grid item xs={12} sm={6}>
+      <TextField
+        fullWidth
+        label="ตำแหน่ง"
+        value={editUser.jobtitle}
+        onChange={(e) =>
+          setEditUser({
+            ...editUser,
+            jobtitle: e.target.value,
+          })
+        }
+        margin="normal"
+      />
+    </Grid>
 
-            <TextField
-              fullWidth
-              label="นามสกุล"
-              value={editUser.lastname}
-              onChange={(e) =>
-                setEditUser({
-                  ...editUser,
-                  lastname: e.target.value,
-                })
-              }
-              margin="normal"
-            />
+    {/* Role */}
+    <Grid item xs={12} sm={6}>
+      <TextField
+        select
+        fullWidth
+        label="สิทธิ์ผู้ใช้งาน"
+        value={editUser.role}
+        onChange={(e) =>
+          setEditUser({
+            ...editUser,
+            role: e.target.value,
+          })
+        }
+        margin="normal"
+      >
+        <MenuItem value="1">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <span className="PermissionDot blue" />
+            <b>User</b>
+          </Box>
+        </MenuItem>
 
-            {/* Role */}
+        <MenuItem value="2">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <span className="PermissionDot green" />
+            <b>QDC</b>
+          </Box>
+        </MenuItem>
 
-            <TextField
-              select
-              fullWidth
-              label="สิทธิ์ผู้ใช้งาน"
-              value={editUser.role}
-              onChange={(e) =>
-                setEditUser({
-                  ...editUser,
-                  role: e.target.value,
-                })
-              }
-              margin="normal"
-            >
-              <MenuItem value="1">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  <span className="PermissionDot blue" />
+        <MenuItem value="3">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <span className="PermissionDot red" />
+            <b>Admin</b>
+          </Box>
+        </MenuItem>
+      </TextField>
+    </Grid>
 
-                  <b>User</b>
-                </Box>
-              </MenuItem>
+    {/* Level */}
+    <Grid item xs={12} sm={6}>
+      <TextField
+        select
+        fullWidth
+        label="ระดับการเข้าถึง"
+        value={editUser.level}
+        onChange={(e) =>
+          setEditUser({
+            ...editUser,
+            level: e.target.value,
+          })
+        }
+        margin="normal"
+      >
+        <MenuItem value="1">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <span className="PermissionDot red" />
 
-              <MenuItem value="2">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  <span className="PermissionDot green" />
+            <Box>
+              <b>Level 1 — แผนก</b>
 
-                  <b>HA</b>
-                </Box>
-              </MenuItem>
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  color: "#64748b",
+                }}
+              >
+                เห็นเฉพาะงานในแผนกของตัวเอง
+              </Typography>
+            </Box>
+          </Box>
+        </MenuItem>
 
-              <MenuItem value="3">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  <span className="PermissionDot red" />
+        <MenuItem value="2">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <span className="PermissionDot green" />
 
-                  <b>Admin</b>
-                </Box>
-              </MenuItem>
-            </TextField>
+            <Box>
+              <b>Level 2 — Affiliation</b>
 
-            {/* Level */}
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  color: "#64748b",
+                }}
+              >
+                เห็นเฉพาะงานใน Affiliation
+              </Typography>
+            </Box>
+          </Box>
+        </MenuItem>
 
-            <TextField
-              select
-              fullWidth
-              label="ระดับการเข้าถึง"
-              value={editUser.level}
-              onChange={(e) =>
-                setEditUser({
-                  ...editUser,
-                  level: e.target.value,
-                })
-              }
-              margin="normal"
-            >
-              <MenuItem value="1">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  <span className="PermissionDot red" />
+        <MenuItem value="3">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <span className="PermissionDot blue" />
 
-                  <Box>
-                    <b>Level 1 — แผนก</b>
+            <Box>
+              <b>Level 3 — ทั้งหมด</b>
 
-                    <Typography
-                      sx={{
-                        fontSize: "11px",
-                        color: "#64748b",
-                      }}
-                    >
-                      เห็นเฉพาะงานในแผนกของตัวเอง
-                    </Typography>
-                  </Box>
-                </Box>
-              </MenuItem>
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  color: "#64748b",
+                }}
+              >
+                เห็นข้อมูลทั้งหมด
+              </Typography>
+            </Box>
+          </Box>
+        </MenuItem>
+      </TextField>
+    </Grid>
 
-              <MenuItem value="2">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  <span className="PermissionDot green" />
-
-                  <Box>
-                    <b>Level 2 — Affiliation</b>
-
-                    <Typography
-                      sx={{
-                        fontSize: "11px",
-                        color: "#64748b",
-                      }}
-                    >
-                      เห็นเฉพาะงานใน Affiliation
-                    </Typography>
-                  </Box>
-                </Box>
-              </MenuItem>
-
-              <MenuItem value="3">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  <span className="PermissionDot blue" />
-
-                  <Box>
-                    <b>Level 3 — ทั้งหมด</b>
-
-                    <Typography
-                      sx={{
-                        fontSize: "11px",
-                        color: "#64748b",
-                      }}
-                    >
-                      เห็นข้อมูลทั้งหมด
-                    </Typography>
-                  </Box>
-                </Box>
-              </MenuItem>
-            </TextField>
-          </DialogContent>
+  </Grid>
+</DialogContent>
 
           <DialogActions
             sx={{
@@ -1143,7 +1223,7 @@ export default function UserManager() {
                     </td>
 
                     <td>
-                      <b>HA</b>
+                      <b>QDC</b>
                     </td>
                   </tr>
 

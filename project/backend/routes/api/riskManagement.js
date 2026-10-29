@@ -35,7 +35,10 @@ router
 
 // Get a single complaint by ID
 router.get("/:reportid", verifyRoles(ROLES_LIST.User, ROLES_LIST.Editor, ROLES_LIST.Admin), riskManagementController.getComplaintById);
-
+router.put(
+  "/updateRisk/:id",
+  riskManagementController.updateRisk
+);
 // Update an complaint by ID
 // router.put('/:id', verifyRoles(ROLES_LIST.User, ROLES_LIST.Editor, ROLES_LIST.Admin),  riskManagementController.updateComplaint);
 

@@ -12,17 +12,20 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import GeneralInfo2 from "../../form/GeneralInfoView";
 import GeneralInfo from "../../form/GeneralInfo";
 import { ShieldCheck } from "lucide-react";
-
+import Workflow from "../../form/workflow";
 import NavForm from "../../form/NavForm";
-
+import { Container, Stack, Paper, Typography, Chip } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-
-
 
 import { ComplaintStyle } from "../../../styles/ComplaintStyle.style";
 import { ComplaintViewStyle } from "../../../styles/ComplaintView.style";
-
-
+import {
+  CircleAlert,
+  ClipboardCheck,
+  MessageSquareReply,
+  FileCheck2,
+  CheckCircle2,
+} from "lucide-react";
 import {
   chkAdmins,
   chkAdmin,
@@ -41,8 +44,7 @@ const Complaint = ({ Mode }) => {
   const inputRefs = useRef({
     deptrelate: null,
     managementremark: null,
-  responseDueDate: null,
-
+    responseDueDate: null,
   });
   const OccType = "Complaint";
   const apiUrl = import.meta.env.VITE_REACT_APP_API_URL;
@@ -59,6 +61,7 @@ const Complaint = ({ Mode }) => {
   const [formData, setFormData] = useState({});
   const [formData2, setFormData2] = useState({});
   const [showAppeal, setShowAppeal] = useState(0);
+  const [activeStep, setActiveStep] = useState(1);
   const [disable, setDisable] = useState(false);
   const [showUrgent, setShowUrgent] = useState(1);
   const [show, setShow] = useState(false);
@@ -73,6 +76,49 @@ const Complaint = ({ Mode }) => {
     fileImageName: null,
     previewImg: null,
   });
+  const steps = [
+    {
+      id: 0,
+      number: "01",
+      title: "ร้องเรียน",
+      subtitle: "Complaint",
+      icon: CircleAlert,
+      color: "#DC2626",
+      lightColor: "#FFF1F1",
+      borderColor: "#991B1B",
+    },
+    {
+      id: 1,
+      number: "02",
+      title: "ส่งหน่วยงาน",
+      subtitle: "Admin Review",
+      icon: ClipboardCheck,
+      color: "#475569",
+      lightColor: "#F4F6F8",
+      borderColor: "#475569",
+    },
+    {
+      id: 2,
+      number: "03",
+      title: "ตอบกลับผู้ร้องเรียน",
+      subtitle: "Response",
+      icon: MessageSquareReply,
+      color: "#0284C7",
+      lightColor: "#EFF8FD",
+      borderColor: "#075985",
+    },
+    {
+      id: 3,
+      number: "04",
+      title: "สรุปผลการวิเคราะห์",
+      subtitle: "Summary",
+      icon: FileCheck2,
+      color: "#16A34A",
+      lightColor: "#F0FAF4",
+      borderColor: "#166534",
+    },
+  ];
+
   const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
   const MAX_DOC_SIZE = 5 * 1024 * 1024; // 5MB
   const [EditFormData, setEditFormData] = useState({});
@@ -122,32 +168,32 @@ const Complaint = ({ Mode }) => {
     setOccStage(parseInt(Text, 10));
   };
 
-const handleDateChange = (event, name) => {
-  const value = event.target.value;
+  const handleDateChange = (event, name) => {
+    const value = event.target.value;
 
-  if(name === "responseDueDate"){
+    if (name === "responseDueDate") {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+      return;
+    }
+
+    const AddDate = new Date(value);
+    const EditDate = TimeConverter(value, 7);
+
     setFormData({
       ...formData,
-      [name]: value
+      [name]: AddDate,
     });
-    return;
-  }
 
-  const AddDate = new Date(value);
-  const EditDate = TimeConverter(value, 7);
-
-  setFormData({
-    ...formData,
-    [name]: AddDate
-  });
-
-  if (Mode === "Edit") {
-    setEditFormData({
-      ...EditFormData,
-      [name]: EditDate
-    });
-  }
-};
+    if (Mode === "Edit") {
+      setEditFormData({
+        ...EditFormData,
+        [name]: EditDate,
+      });
+    }
+  };
   const fetchAttach = async () => {
     try {
       const imgExtensions = ["jpg", "jpeg", "png"]; // List of image formats to check
@@ -340,7 +386,10 @@ const handleDateChange = (event, name) => {
 
   const FetchOccurranceById = async (id) => {
     try {
-      const response = await axios.get(`${apiUrl}/riskManagement/${id}`, config);
+      const response = await axios.get(
+        `${apiUrl}/riskManagement/${id}`,
+        config,
+      );
 
       const response2 = await axios.get(
         `${apiUrl}/complaints/viewform/${id}`,
@@ -591,7 +640,7 @@ const handleDateChange = (event, name) => {
           dep: UserData.dep,
           createby: UserData.userid,
           complainant: "0",
-responseDueDate: "",
+          responseDueDate: "",
         }));
     } else {
       setEditFormData({ id: parseInt(id, 10) });
@@ -774,8 +823,7 @@ responseDueDate: "",
       return;
     }
 
-   if (!formData.managementremark || formData.managementremark.length === 0) {
-
+    if (!formData.managementremark || formData.managementremark.length === 0) {
       setErrors((prev) => ({ ...prev, managementremark: true }));
 
       const el = inputRefs.current.managementremark;
@@ -789,9 +837,7 @@ responseDueDate: "",
       return;
     }
 
-if (formData.complainant === "0" && !formData.responseDueDate) {
-
-
+    if (formData.complainant === "0" && !formData.responseDueDate) {
       setErrors((prev) => ({ ...prev, complainant: true }));
 
       const el = inputRefs.current.complainant;
@@ -804,8 +850,6 @@ if (formData.complainant === "0" && !formData.responseDueDate) {
       }
       return;
     }
-
-
 
     const missingKeys = keydata.filter(({ key }) => {
       if (key === "deptrelate") {
@@ -845,34 +889,31 @@ if (formData.complainant === "0" && !formData.responseDueDate) {
         // };
 
         const submitFormData = new FormData();
-    Object.keys(formData).forEach((key) => {
+        Object.keys(formData).forEach((key) => {
+          if (key === "complaintdate" || key === "reportdate") {
+            return;
+          }
+          if (key === "responseDueDate") {
+            return;
+          }
 
-  
-  if (key === "complaintdate" || key === "reportdate") {
-    return;
-  }
-  if (key === "responseDueDate") {
-    return;
-  }
+          if (formData[key] !== undefined && formData[key] !== null) {
+            if (typeof formData[key] === "object") {
+              submitFormData.append(key, JSON.stringify(formData[key]));
+            } else {
+              submitFormData.append(key, formData[key]);
+            }
+          }
+        });
 
-  if (formData[key] !== undefined && formData[key] !== null) {
-    if (typeof formData[key] === "object") {
-      submitFormData.append(key, JSON.stringify(formData[key]));
-    } else {
-      submitFormData.append(key, formData[key]);
-    }
-  }
-});
+       const complainantValues = String(formData.complainant || "")
+  .split(",")
+  .map((value) => value.trim());
 
-if (
-  formData.complainant === "0" &&
-  formData.responseDueDate
-) {
-  submitFormData.append(
-    "responseDueDate",
-    formData.responseDueDate
-  );
+if (complainantValues.includes("0") && formData.responseDueDate) {
+  submitFormData.append("responseDueDate", formData.responseDueDate);
 }
+
         submitFormData.append(
           "complaintdate",
           TimeConverter(formData.complaintdate, 7),
@@ -888,7 +929,7 @@ if (
           submitFormData.append("files", attachData.filePDF);
         }
         submitFormData.append("formstatus", "0");
-        console.log("responseDueDate =", formData.responseDueDate);
+  
 
         // submitFormData.append("date", date);
         submitFormData.append("manager", checkbox["manager"]);
@@ -963,8 +1004,7 @@ if (
       return;
     }
 
-   if (!formData.managementremark || formData.managementremark.length === 0) {
-
+    if (!formData.managementremark || formData.managementremark.length === 0) {
       setErrors((prev) => ({ ...prev, managementremark: true }));
 
       const el = inputRefs.current.managementremark;
@@ -978,9 +1018,7 @@ if (
       return;
     }
 
-if (formData.complainant === "0" && !formData.responseDueDate) {
-
-
+    if (formData.complainant === "0" && !formData.responseDueDate) {
       setErrors((prev) => ({ ...prev, complainant: true }));
 
       const el = inputRefs.current.complainant;
@@ -993,8 +1031,6 @@ if (formData.complainant === "0" && !formData.responseDueDate) {
       }
       return;
     }
-
-
 
     const missingKeys = keydata.filter(({ key }) => {
       if (key === "deptrelate") {
@@ -1047,9 +1083,9 @@ if (formData.complainant === "0" && !formData.responseDueDate) {
         // console.log("submitEditFormData", submitEditFormData);
         const submitEditFormData = new FormData();
         Object.keys(formData).forEach((key) => {
-            if (key === "responseDueDate") {
-    return false;
-  }
+          if (key === "responseDueDate") {
+            return false;
+          }
 
           if (formData[key] !== undefined && formData[key] !== null) {
             // Exclude complaintdate and reportdate
@@ -1085,15 +1121,19 @@ if (formData.complainant === "0" && !formData.responseDueDate) {
         }
         if (Mode === "Draft") {
           submitEditFormData.append("formstatus", "0");
-       
         }
-         
-if (formData.complainant === "0" && formData.responseDueDate) {
+
+        const complainantValues = String(formData.complainant || "")
+  .split(",")
+  .map((value) => value.trim());
+
+if (complainantValues.includes("0") && formData.responseDueDate) {
   submitEditFormData.append(
     "responseDueDate",
-    formData.responseDueDate
+    formData.responseDueDate,
   );
 }
+
         if (Mode === "Submit") {
           if (formData.formstatus === "0") {
             submitEditFormData.append("formstatus", "1");
@@ -1165,255 +1205,343 @@ if (formData.complainant === "0" && formData.responseDueDate) {
       window.scrollTo({ top: yPosition, behavior: "smooth" });
     }
   };
+
+  const handleStepClick = (step) => {
+    // หน้า Admin นี้รองรับการเปิดดู Step 01
+    // และกลับมาที่ Step 02
+    if (step === 0 || step === 1) {
+      setActiveStep(step);
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <>
-      
       <ComplaintStyle>
-        <div
-          className="px-4 py-3 "
-          style={{
-            background: "#FEF9C3",
-            border: "2px solid #262b20ff",
+        <Box
+          sx={{
             position: "relative",
-            minHeight: "72px",
+            minWidth: "900px",
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
+            gap: 2,
+
+            px: 3,
+            py: 2.5,
+            bgcolor: "#F1F5F9",
+            border: "1px solid #808387ff",
+
+            borderRadius: 2,
+            boxShadow: "0 4px 14px rgba(2,132,199,.08)",
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-              textAlign: "center",
-              whiteSpace: "nowrap",
-            }}
-          >
-            <h2 style={{ margin: 0, fontWeight: 600 }}>
-              <AssignmentIcon
-                sx={{
-                  fontSize: 40, // 🔥 ปรับขนาด (px)
-                  color: "#166534", // 🔥 เปลี่ยนสี
-                }}
-              />{" "}
-              หมายเลขเอกสาร : {reportid}
-            </h2>
-          </div>
-
-          {/* ===== Right Actions ===== */}
-          <div
-            style={{
-              marginLeft: "auto",
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: "18px",
+              bgcolor: "#fff",
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              justifyContent: "center",
+              border: "1px solid #CBD5E1",
+
+              boxShadow: "0 6px 18px rgba(51,65,85,.08)",
             }}
-          ></div>
-        </div>
+          >
+            <ShieldCheck size={34} color="#475569" strokeWidth={2.2} />
+          </Box>
 
-        <Box className="MainContainer" style={{ background: "#F5F5F5" }}>
-          {Stage === 1 && (
-            <ComplaintViewStyle>
-              
-              <GeneralInfo2
-                Mode={Mode}
-                array={array}
-                data={formData2}
-                disable={disable}
-                show={show}
-                setDataFunction={handleDataChange}
-                setSingleDataFunction={handleDataChangeSingle}
-                missingKeys={AlertBorder}
-                setCheckBoxFunction={handleCheckChange}
-                FormType="Occ"
-                handleShow={handleShow}
-                handleSetBoard={handleSetBoard}
-                handleSetDate={handleSetDate}
-                showUrgent={showUrgent}
-                showAppeal={showAppeal}
-                handleDateChange={handleDateChange}
-                handleDataChangeCheckbox={handleDataChangeCheckbox}
-                handleDataChangeCheckbox2={handleDataChangeCheckbox2}
-                
-                isAdmin={isAdmin}
-              />
+          <Box sx={{ flex: 1 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: "#334155",
+              }}
+            >
+              แบบบันทึกของเจ้าหน้าที่บริหารความเสี่ยง (Admin)
+            </Typography>
 
-              <Divider variant="middle" flexItem sx={{ m: 1 }} />
-            </ComplaintViewStyle>
-          )}
+            <Typography
+              variant="body2"
+              sx={{
+                color: "#64748B",
+                mt: 0.5,
+              }}
+            >
+              Risk Management Administration
+            </Typography>
+          </Box>
 
-          {Mode === "Show" &&
-            (isAdmin || isEXEC) &&
-            Stage === 1 &&
-            ["2", "5"].includes(formData.formstatus) && (
-              <>
-                <Divider variant="middle" flexItem sx={{ m: 1 }} />
-                <ReportComment data={formData} />
-              </>
-            )}
+          <Chip
+            label={"หมายเลขเอกสาร :" + reportid}
+            className="mt-5"
+            sx={{
+              bgcolor: "#E2E8F0",
+              color: "#334155",
+              border: "1px solid #CBD5E1",
+              fontWeight: 700,
+              borderRadius: 2,
+              position: "absolute",
+              right: 24,
+              maxWidth: "40%",
+            }}
+          />
         </Box>
 
         <Box className="MainContainer">
-          {Stage === 1 && (
-            <>
+          <ComplaintViewStyle>
+            <Workflow
+              reportid={reportid}
+              activeStep={activeStep}
+              onStepClick={handleStepClick}
+              stepflow={2}
+            />
+          </ComplaintViewStyle>
+          {activeStep === 0 && (
+            <ComplaintViewStyle>
               <div
-                className="px-4 py-3 "
+                className="complaint-detail-card mt-3"
                 style={{
-                  background: "#ffffff",
-                  border: "2px solid #262b20ff",
-                  position: "relative",
-                  minHeight: "72px",
-                  display: "flex",
-                  alignItems: "center",
+                  "--step-color": steps[activeStep]?.color || "#64748B",
+                  "--step-light": steps[activeStep]?.lightColor || "#F8FAFC",
                 }}
               >
-                <IconButton
-                  onClick={() => navigate(-1)}
-                  sx={{
-                    position: "absolute",
-                    left: 16,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    backgroundColor: "#e6f4ea",
-                    "&:hover": {
-                      backgroundColor: "#166534",
-                      color: "#fff",
-                    },
-                  }}
-                >
-                  <ArrowBackIcon />
-                </IconButton>
-                {/* ===== Center Title ===== */}
-
-                <div
-                  style={{
-                    position: "absolute",
-                    left: "50%",
-                    top: "50%",
-                    transform: "translate(-50%, -50%)",
-                  }}
-                >
+                {/* ================================
+            DETAIL HEADER
+        ================================= */}
+                <div className="complaint-detail-top">
+                  {/* STEP NUMBER */}
                   <div
+                    className="complaint-step-number"
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
+                      color: steps[activeStep]?.color || "#64748B",
+
+                      background: steps[activeStep]?.lightColor || "#F8FAFC",
+
+                      borderColor: steps[activeStep]?.color || "#CBD5E1",
                     }}
                   >
-                    <Box
-                      sx={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: "50%",
-                        bgcolor: "#F1F5F9",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <ShieldCheck size={28} color="#475569" />
-                    </Box>
+                    {steps[activeStep]?.number || "01"}
+                  </div>
 
-                    <h4
+                  {/* CENTER TITLE */}
+                  <div className="complaint-detail-heading">
+                    <div
+                      className="complaint-detail-label"
                       style={{
-                        margin: 0,
-                        fontWeight: 600,
-                        whiteSpace: "nowrap",
+                        color: steps[activeStep]?.color || "#64748B",
                       }}
                     >
-                      {Mode === "Add" &&
-                        "ส่วนที่ 2 บันทึกการจัดการของเจ้าหน้าที่ บริหารความเสี่ยง"}
-                      {Mode === "Edit" &&
-                        "ส่วนที่ 2 บันทึกการจัดการของเจ้าหน้าที่ บริหารความเสี่ยง (แก้ไข)"}
-                      {Mode === "Show" &&
-                        "ส่วนที่ 2 บันทึกการจัดการของเจ้าหน้าที่ บริหารความเสี่ยง (ดูได้เท่านั้น)"}
-                      <div style={{ fontSize: "14px", color: "#6B7280" }}>
-                        (สําหรับศูนย์พัฒนาคุณภาพ)
-                      </div>
-                    </h4>
+                      {activeStep === 0 && "COMPLAINT"}
+                      {activeStep === 1 && "ADMIN REVIEW"}
+                      {activeStep === 2 && "RESPONSE"}
+                      {activeStep === 3 && "SUMMARY"}
+                    </div>
+
+                    <div className="complaint-detail-title">
+                      {activeStep === 0 && "รายละเอียดข้อร้องเรียน"}
+
+                      {activeStep === 1 && "รายละเอียดการตรวจสอบ"}
+
+                      {activeStep === 2 && "รายละเอียดการตอบกลับ"}
+
+                      {activeStep === 3 && "รายละเอียดสรุปผลการวิเคราะห์"}
+                    </div>
+
+                    <div className="complaint-detail-description">
+                      {activeStep === 0 &&
+                        "ข้อมูลและรายละเอียดที่ผู้ร้องเรียนแจ้งเข้าม"}
+
+                      {activeStep === 1 &&
+                        "รายละเอียดการพิจารณาและดำเนินการของหน่วยงาน"}
+
+                      {activeStep === 2 &&
+                        "รายละเอียดการตอบกลับและการสื่อสารกับผู้ร้องเรียน"}
+
+                      {activeStep === 3 &&
+                        "ผลการวิเคราะห์ สรุปประเด็น และผลการดำเนินการ"}
+                    </div>
+                  </div>
+
+                  {/* RIGHT STATUS */}
+                  <div
+                    className="complaint-current-step"
+                    style={{
+                      color: steps[activeStep]?.color || "#64748B",
+
+                      background: steps[activeStep]?.lightColor || "#F8FAFC",
+
+                      borderColor: steps[activeStep]?.color || "#CBD5E1",
+                    }}
+                  >
+                    <span
+                      className="complaint-current-dot"
+                      style={{
+                        background: steps[activeStep]?.color || "#64748B",
+                      }}
+                    />
+                    ขั้นตอนที่ {steps[activeStep]?.number || "01"}
                   </div>
                 </div>
 
-                {/* ===== Right Actions ===== */}
-                <div
-                  style={{
-                    marginLeft: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  {formData && Mode !== "Add" && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        right: "1px",
-                        bottom: "1px",
-                        fontSize: "16px",
-                        color: "#374151",
-                        whiteSpace: "nowrap",
-                        alignItems: "center",
-                        gap: "8px",
-                        background: "#F1F5F9",
-                        padding: "2px 10px",
-                        borderRadius: "999px",
-                        border: "1px solid #E2E8F0",
-                        fontSize: "13px",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontWeight: 600,
-                          letterSpacing: "1px",
-                          color: "#0F172A",
-                        }}
-                      >
-                        หมายเลขเอกสาร : {reportid}
-                      </span>
-                    </div>
-                  )}
+                {/* ================================
+            ACCENT LINE
+        ================================= */}
 
-                  {Mode === "Add" && (
-                    <Tooltip title="ล้างข้อมูลทั้งหมด">
-                      <IconButton
-                        size="small"
-                        onClick={ClearData}
-                        sx={{
-                          color: "#6B7280",
-                          "&:hover": {
-                            color: "#EF4444",
-                            backgroundColor: "#FEE2E2",
-                          },
-                        }}
-                      >
-                        <CleaningServicesIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
+                <div
+                  className="complaint-detail-accent"
+                  style={{
+                    background: steps[activeStep]?.color || "#64748B",
+                  }}
+                />
+
+                {/* ================================
+            CONTENT
+        ================================= */}
+
+                <div className="complaint-detail-content">
+                  {/* =====================================================
+              STEP 01 — COMPLAINT
+          ===================================================== */}
+                  <div
+                    className="mb-5"
+                    style={{
+                      margin: "16px 20px",
+                      padding: "20px 28px",
+                      background: "#FFFFFF",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "16px",
+                      boxShadow: "0 8px 28px rgba(30,35,30,.06)",
+                      position: "relative",
+                    }}
+                  >
+                    <GeneralInfo2
+                      Mode="Show"
+                      showAppeal={showAppeal}
+                      array={array}
+                      show={true}
+                      data={formData2}
+                    />
+                  </div>
                 </div>
               </div>
-              <GeneralInfo
-                Mode={Mode}
-                data={formData}
-                setDataFunction={handleDataChange}
-                setSingleDataFunction={handleDataChangeSingle}
-                missingKeys={AlertBorder}
-                setCheckBoxFunction={handleCheckChange}
-                FormType="Occ"
-                handleSetBoard={handleSetBoard}
-                handleSetDate={handleSetDate}
-                handleDateChange={handleDateChange}
-                handleDataChangeCheckbox={handleDataChangeCheckbox}
-                handleDataChangeCheckbox2={handleDataChangeCheckbox2}
-                
-                checkbox={checkbox}
-                setErrors={setErrors}
-                errors={errors}
-                inputRefs={inputRefs}
-              />
+            </ComplaintViewStyle>
+          )}
+          {Stage === 1 && (
+            <>
+              {activeStep === 1 && (
+                <>
+                  <div
+                    className="page-title"
+                    style={{
+                      border: "2px solid #E2E5E9",
+                      boxShadow: "0 2px 7px rgba(15, 23, 42, 0.04)",
+                    }}
+                  >
+                    <div className="page-title-top">
+                      <div
+                        className="page-title-index"
+                        style={{
+                          background:
+                            "linear-gradient(145deg, #475569 0%, #1E293B 100%)",
+                          boxShadow: "0 3px 8px rgba(30, 41, 59, 0.20)",
+                          color: "#FFFFFF",
+                        }}
+                      >
+                        02
+                      </div>
 
-              <Divider variant="middle" flexItem sx={{ m: 1 }} />
+                      <div className="page-title-content">
+                        <div
+                          className="page-title-eyebrow"
+                          style={{
+                            color: "#475569",
+                          }}
+                        >
+                          RISK MANAGEMENT
+                        </div>
+
+                        <h2>
+                          {Mode === "Add" && "ส่งหน่วยงาน"}
+                          {Mode === "Edit" && "แก้ไขการส่งหน่วยงาน"}
+                          {Mode === "Show" && "รายละเอียดการส่งหน่วยงาน"}
+                        </h2>
+
+                        <p>
+                          {Mode === "Add" &&
+                            "ตรวจสอบเรื่องร้องเรียนและส่งต่อหน่วยงานที่เกี่ยวข้อง"}
+                          {Mode === "Edit" &&
+                            "ตรวจสอบและแก้ไขข้อมูลการส่งต่อหน่วยงาน"}
+                          {Mode === "Show" &&
+                            "ตรวจสอบรายละเอียดการร้องเรียนและหน่วยงานที่รับผิดชอบ"}
+                        </p>
+                      </div>
+
+                      <div
+                        className="page-title-mode"
+                        style={{
+                          color: "#334155",
+                          background: "#F1F5F9",
+                          border: "1px solid #CBD5E1",
+                        }}
+                      >
+                        {Mode === "Add" && "เพิ่มข้อมูล"}
+                        {Mode === "Edit" && "แก้ไขข้อมูล"}
+                        {Mode === "Show" && "รายละเอียด"}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="page-form"
+                    style={{
+                      border: "2px solid #E2E5E9",
+                      boxShadow: "0 2px 7px rgba(15, 23, 42, 0.04)",
+                    }}
+                  >
+                    <GeneralInfo
+                      Mode={Mode}
+                      data={formData}
+                      setDataFunction={handleDataChange}
+                      setSingleDataFunction={handleDataChangeSingle}
+                      missingKeys={AlertBorder}
+                      setCheckBoxFunction={handleCheckChange}
+                      FormType="Occ"
+                      handleSetBoard={handleSetBoard}
+                      handleSetDate={handleSetDate}
+                      handleDateChange={handleDateChange}
+                      handleDataChangeCheckbox={handleDataChangeCheckbox}
+                      handleDataChangeCheckbox2={handleDataChangeCheckbox2}
+                      checkbox={checkbox}
+                      setErrors={setErrors}
+                      errors={errors}
+                      inputRefs={inputRefs}
+                    />
+                    <NavForm
+                      Mode={Mode}
+                      Data={formData}
+                      Access={formData.createby === UserData.userid || isAdmin}
+                      submitfunction={handleSubmit}
+                      handleSubmitEdit={handleSubmitEdit}
+                      Stage={Stage}
+                      MaxStage={1}
+                      text="บันทึกส่งหน่วยงาน"
+                      PrevStage={PrevStage}
+                      NextStage={NextStage}
+                      FirstStage={FirstStage}
+                      LastStage={LastStage}
+                      ToStage={ToStage}
+                      ClearData={ClearData}
+                    />
+                  </div>
+                </>
+              )}
             </>
           )}
 
@@ -1427,22 +1555,6 @@ if (formData.complainant === "0" && formData.responseDueDate) {
               </>
             )}
         </Box>
-        <NavForm
-          Mode={Mode}
-          Data={formData}
-          Access={formData.createby === UserData.userid || isAdmin}
-          submitfunction={handleSubmit}
-          handleSubmitEdit={handleSubmitEdit}
-          Stage={Stage}
-          MaxStage={1}
-             text="บันทึกส่งหน่วยงาน"
-          PrevStage={PrevStage}
-          NextStage={NextStage}
-          FirstStage={FirstStage}
-          LastStage={LastStage}
-          ToStage={ToStage}
-          ClearData={ClearData}
-        />
       </ComplaintStyle>
     </>
   );

@@ -9,6 +9,9 @@ import {
   Send,
   ChartColumn,
 } from "lucide-react";
+import {
+  BarChart3,
+} from "lucide-react";
 import { useWebSocket } from "../../context/WebSocketContext";
 
 const Home = () => {
@@ -38,7 +41,6 @@ const Home = () => {
   useEffect(() => {
     if (!userData?.userid) return;
 
-    console.log("🔥 HOME COUNT REQUEST");
 
     requestData("COUNT", {
       createby: userData.userid,
@@ -57,7 +59,7 @@ dep: userData.dep,
     () => [
       {
         id: 1,
-        title: "แบบบันทึกข้อร้องเรียน/ข้อเสนอแนะ",
+        title: "บันทึกข้อร้องเรียน/ข้อเสนอแนะ",
         desc: "คลิกเพื่อเข้าสู่เมนู",
         icon: BadgeAlert,
         color: "#FEE2E2",
@@ -129,6 +131,113 @@ dep: userData.dep,
   // =========================
   return (
     <HomeBox>
+
+      <div
+        className="home-atmosphere"
+        aria-hidden="true"
+      />
+      <Box
+  onClick={() => navigate("/risksummary")}
+  sx={{
+    position: "absolute",
+    top: { xs: 14, md: 24 },
+    right: { xs: 14, md: 30 },
+    zIndex: 5,
+
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 1.2,
+    px: 1.8,
+    py: 1.1,
+
+    bgcolor: "#FFFFFF",
+    color: "#34445B",
+    border: "1px solid #E2E7EF",
+    borderRadius: "12px",
+
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(31, 45, 61, 0.05)",
+    transition: "all 0.2s ease",
+
+    "&:hover": {
+      bgcolor: "#F5F8FC",
+      borderColor: "#A9BEDB",
+      boxShadow: "0 4px 12px rgba(31, 45, 61, 0.09)",
+      transform: "translateY(-1px)",
+
+      "& .dashboard-icon": {
+        bgcolor: "#DCEAFE",
+        color: "#2458A6",
+      },
+    },
+  }}
+>
+  <Box
+    className="dashboard-icon"
+    sx={{
+      width: 36,
+      height: 36,
+      borderRadius: "9px",
+      bgcolor: "#EDF3FC",
+      color: "#3867A8",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      transition: "all 0.2s ease",
+      flexShrink: 0,
+    }}
+  >
+    <BarChart3 size={21} strokeWidth={2.1} />
+  </Box>
+
+  <Box>
+    <Box
+      sx={{
+        fontSize: 13,
+        fontWeight: 800,
+        lineHeight: 1.5,
+        color: "#34445B",
+        whiteSpace: "nowrap",
+      }}
+    >
+      ดูภาพรวม Dashboard
+    </Box>
+
+    <Box
+      sx={{
+        fontSize: 10.5,
+        color: "#8792A3",
+        lineHeight: 1.4,
+      }}
+    >
+      สถิติและรายงานข้อร้องเรียน
+    </Box>
+  </Box>
+</Box>
+       <div className="home-heading">
+
+        <div className="home-kicker">
+          Complaint & Suggestion System
+        </div>
+
+
+        <h1>
+          ระบบการร้องเรียนและข้อเสนอแนะ
+        </h1>
+
+
+        <p>
+          เลือกการดำเนินการที่ต้องการ
+        </p>
+
+
+        <div
+          className="home-heading-divider"
+          aria-hidden="true"
+        />
+
+      </div>
+
       <div className="ItemBox">
         <div className="menu-grid">
           {menus
@@ -157,17 +266,30 @@ dep: userData.dep,
                         icon={<ShieldCheck size={14} />}
                         label={menu.badge}
                         size="small"
-                        sx={{
+                       sx={{
                           position: "absolute",
+
                           bottom: -10,
-                          right: 16,
-                          bgcolor: "#fff",
+
+                          right: 18,
+
+                          bgcolor: "rgba(255,255,255,0.96)",
+
                           color: menu.badgeColor,
+
                           border: `1px solid ${menu.badgeColor}`,
+
                           fontWeight: 700,
+
+                          fontSize: "11px",
+
+                          height: "28px",
+
                           borderRadius: "999px",
+
                           px: 0.5,
-                          boxShadow: "0 8px 20px rgba(0,0,0,.12)",
+
+                          boxShadow: "0 6px 16px rgba(30,35,30,.08)",
 
                           "& .MuiChip-icon": {
                             color: menu.badgeColor,
@@ -253,6 +375,7 @@ dep: userData.dep,
             })}
         </div>
       </div>
+    
     </HomeBox>
   );
 };

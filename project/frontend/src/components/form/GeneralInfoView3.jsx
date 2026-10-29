@@ -10,7 +10,7 @@ import ReportLog from "./ReportLog";
 import ReportLog2 from "./ReportLog2";
 import AutoCompleteText from "./AutoCompleteDep";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-
+import { formatThaiDate } from "./dateUtils";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
@@ -95,118 +95,289 @@ const GeneralInfo = ({
       }
     }
   }, []);
-  const InfoRow = ({ label, value }) => (
-    <div className="info-row-new">
-      <div className="info-label-new">{label}</div>
+  const InfoRow = ({ label, value }) => {
+    const isDept = Array.isArray(value);
 
-      <div className="info-value-new">{value || "-"}</div>
-    </div>
-  );
+    return (
+      <div className="info-row">
+        <div className="info-label">{label}</div>
+
+        <div className="info-value">
+          {isDept ? (
+            <div className="dept-list">
+              {value.length
+                ? value.map((d, i) => (
+                    <span
+                      className="dept-aff"
+                      key={d?.DepID ?? d?.DepName ?? i}
+                    >
+                      {d?.DepName || "-"}
+                    </span>
+                  ))
+                : "-"}
+            </div>
+          ) : (
+            value || "-"
+          )}
+        </div>
+      </div>
+    );
+  };
   const respondText = {
     0: "ตอบกลับผู้ร้องเรียนแล้ว",
     1: data?.respond_text
       ? `ยังไม่ได้ตอบกลับผู้ร้องเรียน : ${data.respond_text}`
       : "ยังไม่ได้ตอบกลับผู้ร้องเรียน",
   };
-  return (
-    <>
-      <div className="page-bg">
-        <div className="card-section">
-           <div className="view-page">
-              <div
-            className="view-header"
-            style={{
-              background: "#F0F9FF",
-              border: "1px solid #0284C7",
-              borderLeft: "5px solid #0284C7",
-            }}
-          >
-            <div
-              className="view-title-main"
-              style={{
-                fontWeight: 700,
-                fontSize: "1.1rem",
-                color: "#075985",
-              }}
-            >
-              <Send size={22} color="#0284C7" />
-              ดูข้อมูลการตอบกลับผู้ร้องเรียน
+
+return (
+  <>
+    {show && (
+      <div className="general-info-page">
+
+        <div className="gi-content">
+
+  
+
+          {/* =====================================================
+              01 — ข้อมูลการตอบกลับ
+          ===================================================== */}
+
+<section className="gi-section">
+
+  <div className="gi-section-header">
+
+    <div>
+
+      <h2 className="gi-section-heading">
+        ข้อมูลการตอบกลับ
+      </h2>
+
+      <div className="gi-section-caption">
+        ความต้องการของผู้ร้องเรียนและสถานะการตอบกลับ
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div className="gi-general-panel">
+
+    <div className="gi-general-group">
+
+      <div className="gi-group-title">
+        รายละเอียดการตอบกลับ
+      </div>
+
+
+      <div className="gi-response-list">
+
+        {/* ความต้องการ */}
+        <div className="gi-response-item">
+
+          <div className="gi-response-label">
+            ความต้องการ
+          </div>
+
+          <div className="gi-response-value">
+            {{
+              0: "ขอให้ตอบกลับผู้ร้องเรียน",
+              1: "ผู้ร้องเรียนไม่ต้องการการตอบกลับ",
+              2: "ผู้ร้องเรียนไม่ประสงค์ให้ชื่อ สกุล",
+              3: "ขอให้ติดต่อกลับเพื่อชี้แจงข้อมูลเพิ่มเติม",
+              4: "ขอให้หน่วยงานตรวจสอบรายละเอียดที่เกิดขึ้น",
+            }[data?.complainant] || "-"}
+          </div>
+
+        </div>
+
+
+        {/* กำหนดตอบกลับ */}
+        {data?.complainant === "0" && (
+          <div className="gi-response-item">
+
+            <div className="gi-response-label">
+              กำหนดตอบกลับ
             </div>
 
-            <Button size="sm" variant="outline-secondary" onClick={handleShow}>
-              {show ? "ซ่อน" : "แสดง"}
-            </Button>
+            <div className="gi-response-value gi-response-date">
+               {data?.responseDueDate ? (
+        <>
+          ภายในวันที่{" "}
+          <span className="thai-date">
+            {formatThaiDate(data.responseDueDate)}
+          </span>
+        </>
+      ) : (
+        "-"
+      )}
+            </div>
+
           </div>
-           </div>
-        
+        )}
 
-          {show && (
-            <>
-              <div className="cv-container">
 
-                   <div className="cv-stack">
+        {/* สถานะการตอบกลับ */}
+        <div className="gi-response-item">
 
-  {/* 1 */}
-  <div className="section">
-    <div className="section-title">
-      
-      ตอบกลับผู้ร้องเรียน
-    </div>
+          <div className="gi-response-label">
+            สถานะการตอบกลับ
+          </div>
 
-    <div className="info-row">
-      <div className="info-label">สถานะการตอบกลับ</div>
-      <div className="info-value">
-        {respondText[data?.respond_radio]}
-      </div>
-    </div>
-  </div>
+          <div className="gi-response-value">
+            {respondText[data?.respond_radio] || "-"}
+          </div>
 
-  {/* 2 */}
-  <div className="section">
-    <div className="section-title">
-      
-      สรุปประเด็นร้องเรียน
-    </div>
-
-    <div className="section-content">
-      {data?.summary_reply || "-"}
-    </div>
-  </div>
-
-  {/* 3 */}
-  <div className="section">
-    <div className="section-title">
-      
-      ผลการวิเคราะห์สาเหตุ
-    </div>
-
-    <div className="section-content">
-      {data?.summary_analysis || "-"}
-    </div>
-  </div>
-
-  {/* 4 */}
-  <div className="section">
-    <div className="section-title">
-      
-      แนวทางการแก้ไข/ป้องกันปัญหาในเชิงระบบ
-    </div>
-
-    <div className="section-content">
-      {data?.summary_solving || "-"}
-    </div>
-  </div>
-
-</div>
-              </div>
-              {" "}
-       
-            </>
-          )}
         </div>
+
       </div>
-    </>
-  );
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+          {/* =====================================================
+              02 — ผลการดำเนินการ
+          ===================================================== */}
+          <section className="gi-section">
+
+            <div className="gi-section-header">
+
+              <div>
+
+                <h2 className="gi-section-heading">
+                  ผลการดำเนินการ
+                </h2>
+
+                <div className="gi-section-caption">
+                  สรุปผล วิเคราะห์สาเหตุ และแนวทางการแก้ไขปัญหา
+                </div>
+
+              </div>
+
+            </div>
+
+
+            {/* =================================================
+                3 กล่องสำคัญ
+            ================================================= */}
+            <div className="gi-analysis-grid">
+
+
+              {/* ===============================================
+                  01 — สรุปประเด็น
+              =============================================== */}
+              <div className="gi-analysis-card">
+
+                <div className="gi-analysis-card-header">
+
+                  <div className="gi-analysis-number">
+                    01
+                  </div>
+
+                  <div>
+
+                    <div className="gi-analysis-kicker">
+                      SUMMARY
+                    </div>
+
+                    <h3 className="gi-analysis-title">
+                      สรุปประเด็นร้องเรียน
+                    </h3>
+
+                  </div>
+
+                </div>
+
+
+                <div className="gi-analysis-body">
+                  {data?.summary_reply || "-"}
+                </div>
+
+              </div>
+
+
+              {/* ===============================================
+                  02 — วิเคราะห์สาเหตุ
+              =============================================== */}
+              <div className="gi-analysis-card">
+
+                <div className="gi-analysis-card-header">
+
+                  <div className="gi-analysis-number">
+                    02
+                  </div>
+
+                  <div>
+
+                    <div className="gi-analysis-kicker">
+                      ROOT CAUSE
+                    </div>
+
+                    <h3 className="gi-analysis-title">
+                      ผลการวิเคราะห์สาเหตุ
+                    </h3>
+
+                  </div>
+
+                </div>
+
+
+                <div className="gi-analysis-body">
+                  {data?.summary_analysis || "-"}
+                </div>
+
+              </div>
+
+
+              {/* ===============================================
+                  03 — แก้ไข / ป้องกัน
+              =============================================== */}
+              <div className="gi-analysis-card gi-analysis-card-main">
+
+                <div className="gi-analysis-card-header">
+
+                  <div className="gi-analysis-number">
+                    03
+                  </div>
+
+                  <div>
+
+                    <div className="gi-analysis-kicker">
+                      SYSTEM IMPROVEMENT
+                    </div>
+
+                    <h3 className="gi-analysis-title">
+                      แนวทางการแก้ไข/ป้องกันปัญหาในเชิงระบบ
+                    </h3>
+
+                  </div>
+
+                </div>
+
+
+                <div className="gi-analysis-body">
+                  {data?.summary_solving || "-"}
+                </div>
+
+              </div>
+
+            </div>
+
+          </section>
+
+        </div>
+
+      </div>
+    )}
+  </>
+);
+
 };
 
 export default GeneralInfo;

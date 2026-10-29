@@ -7,24 +7,132 @@ import useAuth from "../../hooks/useAuth";
 import { LoginBox } from "../../styles/Login.style";
 import Swal from 'sweetalert2';
 import FeedbackIcon from "@mui/icons-material/Feedback";
-
+import occurrence_logo from "../../assets/occurrence_logo.png";
+import complaint_logo from "../../assets/complaint_logo.png";
 import { createGlobalStyle } from "styled-components";
 const GlobalStyle = createGlobalStyle`
-body.login-page {
-background:
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1), transparent 40%),
-    linear-gradient(135deg, #0f2027, #134e5e, #0f9b0f);
-  background-attachment: fixed;
+  html,
+  body,
+  #root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+  }
 
+   .login-header{
+  text-align:center;
+
+  }
+
+.login-card input {
+  font-size: 20px !important;
 }
- 
+
+.login-card input::placeholder {
+  font-size: 20px !important;
+}
+
+  body.login-page {
+    background:
+      radial-gradient(
+        circle at 12% 15%,
+        rgba(35, 91, 67, 0.18),
+        transparent 32%
+      ),
+      radial-gradient(
+        circle at 88% 18%,
+        rgba(27, 94, 69, 0.15),
+        transparent 34%
+      ),
+      radial-gradient(
+        circle at 82% 85%,
+        rgba(18, 61, 43, 0.13),
+        transparent 38%
+      ),
+      radial-gradient(
+        circle at 15% 85%,
+        rgba(47, 118, 91, 0.15),
+        transparent 36%
+      ),
+      linear-gradient(
+        135deg,
+        #edf5f0 0%,
+        #dcebe3 45%,
+        #cfe2d8 100%
+      );
+
+    background-attachment: fixed;
+  }
+
   #root {
     text-align: unset;
-    
   }
-`;
 
+  
+.other-system {
+  margin-top: 20px;
+  text-align: center;
+
+}
+
+.other-system-title {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 10px;
+  
+}
+.other-system-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  width: fit-content;
+  margin: 12px auto 0;
+  padding: 8px 12px;
+
+  text-decoration: none;
+  border-radius: 8px;
+
+  transition: all 0.2s ease;
+    background-color: #f8ffe25a;
+}
+
+.other-system-icon {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.other-system-text {
+  text-align: left;
+  line-height: 1.2;
+}
+
+.other-system-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.other-system-hint {
+  margin-top: 3px;
+  font-size: 10px;
+  color: #aaa;
+}
+
+.other-system-link:hover {
+  background: rgba(135, 161, 7, 0.06);
+}
+
+.other-system-link:hover .other-system-name {
+  color: #706f10ff;
+}
+  .occurrence-logo-icon{
+  width:100%;}
+`;
 const Login = () => {
   const apiUrl = import.meta.env.VITE_REACT_APP_API_URL;
   const { setAuth } = useAuth();
@@ -160,49 +268,139 @@ const Login = () => {
     };
   }, []);
 
-  return (
-    <>
-      <LoginBox>
-        <GlobalStyle />
-        <div className="login-wrapper">
-          <div className="login-card">
-            {" "}
-          
-            <form className="login" onSubmit={handleSubmit} autoComplete="off">
-  <div className="login-header">
-  <div className="icon-wrap">
-      <FeedbackIcon fontSize="large"/>
-  </div>
-  <h1>ระบบการร้องเรียนและข้อเสนอแนะ</h1>
-  <p>Complaint & Suggestion System</p>
-</div>
-              <input
-                ref={userRef}
-                type="text"
-                name="userid"
-                id="userid"
-                value={userid}
-                onChange={(e) => setUserid(e.target.value)}
-                placeholder="รหัสพนักงาน"
-                required
-              />
-              <input
-                ref={passRef}
-                type="password"
-                name="password"
-                id="password"
-                value={pass}
-                onChange={(e) => setPass(e.target.value)}
-                placeholder="รหัสผ่าน"
-                required
-              />
-              <button disabled={loading}>เข้าสู่ระบบ</button>
-            </form>
+ return (
+  <>
+    <LoginBox>
+      <GlobalStyle />
+
+      <div className="login-wrapper">
+
+        {/* =====================================================
+            LEFT BRAND
+        ====================================================== */}
+
+        <div className="login-brand">
+
+          <div className="brand-content">
+
+      <div className="brand-icon">
+                <img src={complaint_logo} className="occurrence-logo-icon" />
+              </div>
+            <h2 className="brand-title">
+              ระบบการร้องเรียนและข้อเสนอแนะ
+            </h2>
+
+            <p className="brand-subtitle">
+              
+              <br />
+              Complaint & Suggestion System
+            </p>
+
           </div>
+
         </div>
-      </LoginBox>
-    </>
-  );
+
+
+        {/* =====================================================
+            RIGHT LOGIN
+        ====================================================== */}
+
+        <div className="login-card">
+
+          <form
+            className="login"
+            onSubmit={handleSubmit}
+            autoComplete="off"
+          >
+    <div className="login-header">
+                  <div className="login-kicker">
+              Complaint & Suggestion
+            </div>
+
+            <h1>
+             เข้าสู่ระบบ 
+            </h1>
+
+            <div className="login-line" />
+    
+
+              </div>
+
+
+            {/* USERNAME */}
+
+            <input
+              ref={userRef}
+              type="text"
+              name="userid"
+              id="userid"
+              value={userid}
+              onChange={(e) => setUserid(e.target.value)}
+              placeholder="รหัสพนักงาน"
+              required
+            />
+
+
+            {/* PASSWORD */}
+
+            <input
+              ref={passRef}
+              type="password"
+              name="password"
+              id="password"
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+              placeholder="รหัสผ่าน"
+              required
+            />
+
+
+            {/* LOGIN */}
+
+            <button disabled={loading}>
+              {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+            </button>
+
+
+            {/* BOTTOM LINE */}
+
+              <div className="login-divider" />
+
+              <div className="other-system">
+                <div className="other-system-title">เข้าสู่ระบบอื่น</div>
+
+                <a
+                  href="http://10.1.1.95:3001"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="other-system-link"
+                >
+                  <img
+                    src={occurrence_logo}
+                    alt="Complaint & Suggestion"
+                    className="other-system-icon"
+                  />
+
+                  <div className="other-system-text">
+                    <div className="other-system-name">
+                      ระบบการร้องเรียนและข้อเสนอแนะ
+                    </div>
+
+                    <div className="other-system-hint">
+                      Complaint & Suggestion
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+          </form>
+
+        </div>
+
+      </div>
+    </LoginBox>
+  </>
+);
 };
 
 export default Login;

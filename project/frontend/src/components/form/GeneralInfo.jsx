@@ -77,7 +77,7 @@ const GeneralInfo = ({
     }
   }, []);
 
-   const committeeOptions = [
+  const committeeOptions = [
     "คณะกรรมการทีมสหสาขาวิชาชีพอายุรกรรมโรคเบาหวานและต่อมไร้ท่อ",
     "คณะกรรมการทีมนำพัฒนาคุณภาพโรงพยาบาล",
     "คณะกรรมการบริหารและพัฒนาทรัพยากรบุคคล HRC",
@@ -114,12 +114,51 @@ const GeneralInfo = ({
     "คณะทำงาน Nurse CPR",
     "คณะทำงาน Nurse Audit",
   ];
+
+  const selectedComplainant = String(data?.complainant ?? "0")
+  .split(",")
+  .filter(Boolean);
+
+const handleComplainantChange = (value, checked) => {
+  const current = String(data?.complainant ?? "0")
+    .split(",")
+    .filter(Boolean);
+
+  const updated = checked
+    ? [...new Set([...current, value])]
+    : current.filter((item) => item !== value);
+
+  // ส่งค่าในรูปแบบ event เพื่อให้ setDataFunction เดิมใช้งานได้
+  setDataFunction(
+    {
+      target: {
+        name: "complainant",
+        value: updated.join(","),
+      },
+    },
+    "complainant"
+  );
+
+  setErrors((prev) => ({
+    ...prev,
+    complainant: false,
+  }));
+};
   return (
     <>
       <div className="section-card">
         <div className="section-header">
-          <GreenCircle />
-          หน่วยงาน
+          <span className="section-number">01</span>
+
+          <div className="section-header-content">
+            <div className="section-title">ส่งต่อหน่วยงาน</div>
+
+            <div className="section-description">
+              กำหนดหน่วยงานหรือคณะกรรมการที่เกี่ยวข้อง เพื่อรับเรื่อง
+    ดำเนินการ และตอบกลับแนวทางการแก้ไข
+
+            </div>
+          </div>
         </div>
 
         <div className="section-body">
@@ -147,25 +186,25 @@ const GeneralInfo = ({
               </Col>
             </Row>
 
-          <Row className="align-items-center mb-3">
-  <Col md={4}>คณะกรรมการ</Col>
+            <Row className="align-items-center mb-3">
+              <Col md={4}>คณะกรรมการ</Col>
 
-  <Col md={8}>
-    <Form.Select
-      value={data?.board || ""}
-      onChange={(e) => setDataFunction(e, "board")}
-      className="form-input"
-    >
-      <option value="">เลือกคณะกรรมการ</option>
+              <Col md={8}>
+                <Form.Select
+                  value={data?.board || ""}
+                  onChange={(e) => setDataFunction(e, "board")}
+                  className="form-input"
+                >
+                  <option value="">เลือกคณะกรรมการ</option>
 
-      {committeeOptions.map((committee, index) => (
-        <option key={index} value={committee}>
-          {committee}
-        </option>
-      ))}
-    </Form.Select>
-  </Col>
-</Row>
+                  {committeeOptions.map((committee, index) => (
+                    <option key={index} value={committee}>
+                      {committee}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Col>
+            </Row>
 
             <Row className="align-items-center mb-3">
               <Col md={6}>
@@ -234,10 +273,19 @@ const GeneralInfo = ({
 
       <div className="section-card">
         <div className="section-header">
-          <GreenCircle />
-          สําเนาเรียนผู้บริหาร
+          <span className="section-number">02</span>
+
+          <div className="section-header-content">
+            <div className="section-title">ผู้รับสำเนารายงาน</div>
+
+            <div className="section-description">
+              เลือกผู้บริหาร หน่วยงาน หรือบุคลากรที่ต้องการส่งสำเนารายงานทางอีเมล
+            </div>
+          </div>
         </div>
+
         <div className="section-body">
+          <div className="form-subtitle mt-3">สําเนาเรียนผู้บริหาร</div>
           <Container>
             <Row>
               <FormGroup row id="manager" name="manager">
@@ -264,14 +312,8 @@ const GeneralInfo = ({
               </FormGroup>
             </Row>
           </Container>
-        </div>
-      </div>
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          ฝ่ายแพทย์/งานคุณภาพ
-        </div>
-        <div className="section-body">
+
+          <div className="form-subtitle mt-3">ฝ่ายแพทย์/งานคุณภาพ</div>
           <Container>
             <Row>
               <FormGroup row id="quality" name="quality">
@@ -298,14 +340,7 @@ const GeneralInfo = ({
               </FormGroup>
             </Row>
           </Container>
-        </div>
-      </div>
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          งานพยาบาล
-        </div>
-        <div className="section-body">
+          <div className="form-subtitle mt-3">งานพยาบาล</div>
           <Container>
             <Row>
               <FormGroup
@@ -323,18 +358,9 @@ const GeneralInfo = ({
                       onChange={(e) => setCheckBoxFunction(e, "nurse")}
                     />
                   }
-                  label="รองผอ.แพทย"
+                  label="รองผอ.แพทย์งานพยาบาล"
                 />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="b"
-                      checked={nurse.includes("b")}
-                      onChange={(e) => setCheckBoxFunction(e, "nurse")}
-                    />
-                  }
-                  label="งานพยาบาล"
-                />
+
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -348,15 +374,8 @@ const GeneralInfo = ({
               </FormGroup>
             </Row>
           </Container>
-        </div>
-      </div>
+          <div className="form-subtitle mt-3">ฝ่ายบริหาร</div>
 
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          ฝ่ายบริหาร
-        </div>
-        <div className="section-body">
           <Container>
             <Row>
               <FormGroup
@@ -419,15 +438,8 @@ const GeneralInfo = ({
               </FormGroup>
             </Row>
           </Container>
-        </div>
-      </div>
 
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          ฝ่ายปฏิบัติการ
-        </div>
-        <div className="section-body">
+          <div className="form-subtitle mt-3">ฝ่ายปฏิบัติการ</div>
           <Container>
             <Row>
               <FormGroup
@@ -480,15 +492,8 @@ const GeneralInfo = ({
               </FormGroup>
             </Row>
           </Container>
-        </div>
-      </div>
 
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          สํานักอํานวยการ
-        </div>
-        <div className="section-body">
+          <div className="form-subtitle mt-3">สํานักอํานวยการ</div>
           <Container>
             <Row>
               <FormGroup
@@ -512,15 +517,8 @@ const GeneralInfo = ({
               </FormGroup>
             </Row>
           </Container>
-        </div>
-      </div>
 
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          องค์กรแพทย์
-        </div>
-        <div className="section-body">
+          <div className="form-subtitle mt-3">องค์กรแพทย์</div>
           <Container>
             <Row>
               <FormGroup
@@ -555,15 +553,9 @@ const GeneralInfo = ({
               </FormGroup>
             </Row>
           </Container>
-        </div>
-      </div>
 
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          อื่นๆ
-        </div>
-        <div className="section-body">
+          <div className="form-subtitle mt-3">อื่นๆ</div>
+
           <Container>
             <Row>
               <FormGroup
@@ -589,35 +581,42 @@ const GeneralInfo = ({
           </Container>
         </div>
       </div>
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          บันทึกการสืบความของผู้รับข้อร้องเรียน
-            <span className="required-badge">จำเป็น</span>
-            
+
+      <div className="section-card section-card-important">
+        <div className="section-header section-header-important">
+          <div className="section-number section-number-important">
+            <span>★</span>
+          </div>
+
+          <div className="section-header-content">
+            <div className="section-title section-title-important">
+              สรุปและเรียบเรียงประเด็น
+            </div>
+
+            <div className="section-description">
+              สรุปและเรียบเรียงประเด็นจากคำร้องเรียนให้ชัดเจน
+              เพื่อส่งต่อให้หน่วยงานที่เกี่ยวข้องเข้าใจตรงกัน
+            </div>
+          </div>
+
+          <div className="section-important-badge">สำคัญ</div>
         </div>
-           <div
-      style={{
-        fontSize: "14px",
-        fontWeight: 400,
-        color: "#8a8f98",
-        marginTop: "3px",
-        lineHeight: 1.4,
-        textAlign:'left',
-        marginLeft:'20px',
-      }}
-    >
-      สรุปและเรียบเรียงประเด็นจากคำร้องเรียนให้ชัดเจน เพื่อส่งต่อให้หน่วยงานที่เกี่ยวข้องเข้าใจตรงกัน
-    </div>
+
         <div className="section-body">
+          <div className="form-subtitle">
+            <span className="form-subtitle-text">
+              บันทึกการสืบความของผู้รับข้อร้องเรียน{" "}
+              <span className="required-badge">จำเป็น</span>
+            </span>
+          </div>
           <Container>
             <Row>
               <TextField
                 fullWidth
-                ref={(el) => (inputRefs.current.managementremark = el)}
+              inputRef={(el) => (inputRefs.current.managementremark = el)}
                 id="managementremark"
                 disabled={Mode === "Show"}
-                label="เขียนรายละเอียด"
+                placeholder="เขียนรายละเอียด"
                 value={data?.managementremark || ""}
                 onChange={(e) => {
                   setErrors((prev) => ({ ...prev, managementremark: false }));
@@ -626,7 +625,7 @@ const GeneralInfo = ({
                 }}
                 variant="standard"
                 multiline
-                rows={4}
+                rows={5}
                 sx={{ marginBottom: 1 }}
                 style={{
                   borderColor: errors.managementremark ? "#dc3545" : "",
@@ -638,6 +637,9 @@ const GeneralInfo = ({
                     : "",
                 }}
               />
+
+
+              
               {errors.managementremark && (
                 <Form.Control.Feedback
                   type="invalid"
@@ -653,113 +655,280 @@ const GeneralInfo = ({
       </div>
       <div className="section-card">
         <div className="section-header">
-          <GreenCircle />
-          สิ่งที่ต้องการให้ผู้ถูกร้องเรียนดำเนินการ
-            <span className="required-badge">จำเป็น</span>
+          <span className="section-number">03</span>
+
+          <div className="section-header-content">
+            <div className="section-title">
+              สิ่งที่ต้องการให้ผู้ถูกร้องเรียนดำเนินการ
+            </div>
+
+            <div className="section-description">
+              ระบุความประสงค์ของผู้ร้องเรียนเกี่ยวกับการตอบกลับ การติดต่อ และการตรวจสอบข้อร้องเรียน
+            </div>
+          </div>
         </div>
+
         <div className="section-body">
           <Container>
             <Row>
-              <RadioGroup
-                id="complainant"
-                aria-labelledby="complainant"
-                defaultValue="0"
-                name="complainant"
+            
+<FormGroup
+  id="complainant"
+  sx={{
+    display: "flex",
+    flexDirection: "column",
+    gap: 0,
+    width: "100%",
 
-                  onChange={(e) => {
-                    setErrors((prev) => ({ ...prev, complainant: false }));
+    "& .MuiFormControlLabel-root": {
+      margin: 0,
+      minHeight: 36,
+      alignItems: "center",
+    },
 
-                    setDataFunction(e, "complainant");
-                  }}
-                value={data?.complainant || "0"}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 2,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <FormControlLabel
-                    value="0"
-                    control={<Radio />}
-                    label="ขอให้ตอบกลับผู้ร้องเรียน"
-                  />
+    "& .MuiCheckbox-root": {
+      padding: "5px",
+    },
 
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 0.5,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                      }}
-                    >
-                      ภายในวันที่
-                      <Form.Control
-                        type="date"
-                        ref={(el) => (inputRefs.current.complainant = el)}
-                        disabled={data?.complainant !== "0"}
-                        value={data?.responseDueDate || ""}
-              
-                            onChange={(e) => {
-                          setErrors((prev) => ({ ...prev, complainant: false }));
+    "& .MuiFormControlLabel-label": {
+      fontSize: "0.95rem",
+      lineHeight: 1.4,
+    },
+  }}
+>
+  {/* ข้อ 0: ขอให้ตอบกลับผู้ร้องเรียน */}
+<Box
+  sx={{
+    display: "flex",
+    alignItems: "center",
+    gap: 1.5,
+    flexWrap: "wrap",
+    minHeight: 36,
+  }}
+>
+    <FormControlLabel
+      sx={{ mr: 0 }}
+      control={
+        <Checkbox
+          checked={selectedComplainant.includes("0")}
+          disabled={Mode === "Show"}
+          onChange={(e) =>
+            handleComplainantChange("0", e.target.checked)
+          }
+          icon={
+            <Radio
+              checked={false}
+              sx={{ pointerEvents: "none" }}
+            />
+          }
+          checkedIcon={
+            <Radio
+              checked
+              sx={{ pointerEvents: "none" }}
+            />
+          }
+        />
+      }
+      label="ขอให้ตอบกลับผู้ร้องเรียน"
+    />
 
-                          setDataFunction(e, "responseDueDate");
-                        }}
-                        style={{
-                          width: "180px",
-                          borderColor: errors.complainant ? "#dc3545" : "",
-                          boxShadow: errors.complainant
-                            ? "0 0 0 0.2rem rgba(220,53,69,.25)"
-                            : "",
-                        }}
-                      />
-                    </Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 0.5,
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        ภายในวันที่
 
-                    {errors.complainant && (
-                      <div
-                        style={{
-                          color: "#dc3545",
-                          fontSize: "0.875rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        <ErrorOutlineIcon fontSize="small" />
-                        กรุณาเขียนวันที่
-                      </div>
-                    )}
-                  </Box>
-                </Box>
-                <FormControlLabel
-                  value="1"
-                  control={<Radio />}
-                  label="ผู้ร้องเรียนไม่ต้องการการตอบกลับ"
-                />
-                <FormControlLabel
-                  value="2"
-                  control={<Radio />}
-                  label="ผู้ร้องเรียนไม่ประสงค์ให้ชื่อ สกุล"
-                />
-                <FormControlLabel
-                  value="3"
-                  control={<Radio />}
-                  label="ขอให้ติดต่อกลับเพื่อชี้แจงข้อมูลเพิ่มเติม"
-                />
-                <FormControlLabel
-                  value="4"
-                  control={<Radio />}
-                  label="ขอให้หน่วยงานตรวจสอบรายละเอียดที่เกิดขึ้น"
-                />
-              </RadioGroup>
+     <Form.Control
+  type="date"
+  ref={(el) => (inputRefs.current.responseDueDate = el)}
+  disabled={
+    Mode === "Show" ||
+    !selectedComplainant.includes("0")
+  }
+  value={data?.responseDueDate || ""}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    setErrors((prev) => ({
+      ...prev,
+      complainant: false,
+    }));
+
+    setDataFunction(
+      {
+        target: {
+          name: "responseDueDate",
+          value,
+        },
+      },
+      "responseDueDate"
+    );
+  }}
+  style={{
+    width: "180px",
+    borderColor: errors.complainant ? "#dc3545" : "",
+    boxShadow: errors.complainant
+      ? "0 0 0 0.2rem rgba(220,53,69,.25)"
+      : "",
+  }}
+/>
+      </Box>
+
+      {errors.complainant && (
+        <div
+          style={{
+            color: "#dc3545",
+            fontSize: "0.875rem",
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          <ErrorOutlineIcon fontSize="small" />
+          กรุณาเขียนวันที่
+        </div>
+      )}
+    </Box>
+  </Box>
+
+  {/* ข้อ 1–4: เลือกได้หลายข้อ */}
+  {[
+    {
+      value: "1",
+      label: "ผู้ร้องเรียนไม่ต้องการการตอบกลับ",
+    },
+    {
+      value: "2",
+      label: "ผู้ร้องเรียนไม่ประสงค์ให้ชื่อ สกุล",
+    },
+    {
+      value: "3",
+      label: "ขอให้ติดต่อกลับเพื่อชี้แจงข้อมูลเพิ่มเติม",
+    },
+    {
+      value: "4",
+      label: "ขอให้หน่วยงานตรวจสอบรายละเอียดที่เกิดขึ้น",
+    },
+  ].map((item) => (
+    <FormControlLabel
+      key={item.value}
+      sx={{ mr: 0 }}
+      control={
+        <Checkbox
+          checked={selectedComplainant.includes(item.value)}
+          disabled={Mode === "Show"}
+          onChange={(e) =>
+            handleComplainantChange(
+              item.value,
+              e.target.checked
+            )
+          }
+          icon={
+            <Radio
+              checked={false}
+              sx={{ pointerEvents: "none" }}
+            />
+          }
+          checkedIcon={
+            <Radio
+              checked
+              sx={{ pointerEvents: "none" }}
+            />
+          }
+        />
+      }
+      label={item.label}
+    />
+  ))}
+</FormGroup>
+
+           
+<Box
+  sx={{
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 1,
+    mt: 2,
+    width: "100%",
+  }}
+>
+  {/* หัวข้อด้านซ้าย */}
+  <Box
+    sx={{
+      width: 120,
+      pt: 1,
+      fontSize: "0.95rem",
+      fontWeight: 600,
+      color: "#344054",
+    }}
+  >
+    บันทึกข้อความ : 
+  </Box>
+
+ <Box sx={{ flex: 1, minWidth: 0 }}>
+    <TextField
+      fullWidth
+      inputRef={(el) => (inputRefs.current.respond_text = el)}
+      id="respond_text"
+      disabled={Mode === "Show"}
+      placeholder="เขียนรายละเอียดเพิ่มเติม..."
+      value={data?.respond_text || ""}
+      onChange={(e) => {
+        setErrors((prev) => ({
+          ...prev,
+          respond_text: false,
+        }));
+
+        setDataFunction(e, "respond_text");
+      }}
+      variant="outlined"
+      multiline
+      rows={3}
+      error={!!errors.respond_text}
+      sx={{
+        "& .MuiOutlinedInput-root": {
+          borderRadius: "10px",
+          backgroundColor: Mode === "Show" ? "#f8fafc" : "#ffffff",
+          fontSize: "0.95rem",
+          transition: "all 0.2s ease",
+
+          "& fieldset": {
+            borderColor: errors.respond_text ? "#dc3545" : "#d0d5dd",
+          },
+
+          "&:hover fieldset": {
+            borderColor: errors.respond_text ? "#dc3545" : "#94a3b8",
+          },
+
+          "&.Mui-focused fieldset": {
+            borderColor: "#2563eb",
+            borderWidth: "1.5px",
+          },
+        },
+
+        "& .MuiInputBase-input::placeholder": {
+          color: "#98a2b3",
+          opacity: 1,
+        },
+      }}
+      helperText={
+        errors.respond_text ? "กรุณากรอกบันทึกข้อความ" : ""
+      }
+    />
+  </Box>
+</Box>
+ 
+
             </Row>
           </Container>
         </div>

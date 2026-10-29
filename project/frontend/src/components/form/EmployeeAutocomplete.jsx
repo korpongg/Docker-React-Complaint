@@ -23,11 +23,7 @@ function EmployeeAutocomplete({
     const fetchEmployees = async () => {
       try {
         setLoading(true);
-        console.log("storedAuth:", storedAuth);
-console.log("accessToken:", storedAuth?.accessToken);
-console.log("config:", config);
-console.log("apiUrl:", apiUrl);
-console.log("GET:", `${apiUrl}/users`);
+
 
 const response = await axios.get(
   `${apiUrl}/users/faction`,
@@ -39,8 +35,7 @@ const response = await axios.get(
   }
 );
         if (response.status === 200 || response.status === 201) {
-          console.log('response.data')
-          console.log(response.data)
+
           const users = Array.isArray(response.data)
             ? response.data
             : [];

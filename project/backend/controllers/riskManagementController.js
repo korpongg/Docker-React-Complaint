@@ -45,7 +45,36 @@ const MAIL_MAP = {
     a: ["korpongparunyakul@gmail.com"],
   },
 };
+const normalizeResponseDueDate = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
 
+  const dateString = String(value).trim();
+
+  // รับเฉพาะรูปแบบ YYYY-MM-DD จาก input type="date"
+  const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (!match) {
+    throw new Error("responseDueDate ต้องอยู่ในรูปแบบ YYYY-MM-DD");
+  }
+
+  const [, year, month, day] = match;
+  const check = new Date(
+    Date.UTC(Number(year), Number(month) - 1, Number(day))
+  );
+
+  if (
+    check.getUTCFullYear() !== Number(year) ||
+    check.getUTCMonth() !== Number(month) - 1 ||
+    check.getUTCDate() !== Number(day)
+  ) {
+    throw new Error("responseDueDate ไม่ใช่วันที่ที่ถูกต้อง");
+  }
+
+  // คืนเป็น string ห้ามแปลงเป็น new Date()
+  return dateString;
+};
 function buildMailList(data) {
   const mails = [];
 
@@ -71,7 +100,25 @@ const { executeAndStoreQueryResult } = require("../services/broadcastService");
 const { sendEmail, sendExecEmail } = require("./emailController");
 const DB_NAME = process.env.DB_NAME;
 const HA_EMAIL = process.env.HA_EMAIL;
+const normalizeComplainant = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return value;
+  }
 
+  const values = Array.isArray(value)
+    ? value
+    : String(value).split(",");
+
+  const allowedValues = ["0", "1", "2", "3", "4"];
+
+  return [
+    ...new Set(
+      values
+        .map((item) => String(item).trim())
+        .filter((item) => allowedValues.includes(item))
+    ),
+  ].join(",");
+};
 const fs = require("fs");
 const path = require("path");
 
@@ -198,15 +245,18 @@ exports.createComplaint = async (req, res) => {
       .toISOString()
       .replace("T", " ")
       .replace("Z", "");
-  
-    const result = await RiskManagement.create({
-      ...req.body,
-      complaintdate: sequelize.literal(`'${formattedComplaintDate}'`),
-      formstatus: req.body.formstatus ? req.body.formstatus : "1",
-      createAt: sequelize.literal("CURRENT_TIMESTAMP"),
-      updateAt: sequelize.literal("CURRENT_TIMESTAMP"),
-      reportid: reportidWhere, // Assign the generated reportId
-    });
+const result = await RiskManagement.create({
+  ...req.body,
+
+  complainant: normalizeComplainant(req.body.complainant),
+  responseDueDate: normalizeResponseDueDate(req.body.responseDueDate),
+
+  complaintdate: sequelize.literal(`'${formattedComplaintDate}'`),
+  formstatus: req.body.formstatus ? req.body.formstatus : "1",
+  createAt: sequelize.literal("CURRENT_TIMESTAMP"),
+  updateAt: sequelize.literal("CURRENT_TIMESTAMP"),
+  reportid: reportidWhere,
+});
 
     if (fileData.length > 0) {
       const renamePromises = fileData.map((file) => {
@@ -300,7 +350,7 @@ for (const recipientEmail of mailList) {
         ขอขอบคุณ
         `;
       const recipientEmail = arr_mail[i];
-      sendEmail(
+     sendEmail(
         recipientEmail,
         newComplaintId,
         reportidWhere,
@@ -356,9 +406,6 @@ for (const recipientEmail of mailList) {
 exports.submitExecutive = async (req, res) => {
   try {
     const { reportidWhere } = req.body;
-    console.log("BODY:", req.body);
-    console.log("respond_Type:", req.body.respond_Type);
-    console.log(typeof req.body.respond_Type);
     const result = await SummaryComplaint.create({
       ...req.body,
       createAt: sequelize.literal("CURRENT_TIMESTAMP"),
@@ -627,6 +674,7 @@ exports.updateComplaint = async (req, res) => {
   if (!req?.body?.id) {
     return res.status(400).json({ message: "id is required." });
   }
+  
   const {
     count,
     deptemail,
@@ -701,26 +749,31 @@ exports.updateComplaint = async (req, res) => {
     if (req.body.updateby) {
       req.body.updateAt = sequelize.literal("CURRENT_TIMESTAMP");
     }
+if (req.body.complainant !== undefined) {
+  req.body.complainant = normalizeComplainant(
+    req.body.complainant
+  );
+}
 
+if (req.body.responseDueDate !== undefined) {
+  req.body.responseDueDate = normalizeResponseDueDate(
+    req.body.responseDueDate
+  );
+}
     const validColumns = req.body;
     // console.log("Data sets:", validColumns);
 
     // Loop through validColumns and update or remove values as needed
     for (const column in validColumns) {
-      if (
-        validColumns[column] === undefined ||
-        validColumns[column] === null ||
-        validColumns[column] === "Invalid date"
-      ) {
-        // Delete the property (column) from Complaints
-        delete complaint[column];
-        // console.log("Removed column:", column);
-      } else {
-        // Update the property (column) in Complaints
-        complaint[column] = validColumns[column];
-        // console.log("Updated column:", column);
-        // console.log("Updated value:", validColumns[column]);
-      }
+    if (
+  validColumns[column] === undefined ||
+  validColumns[column] === "Invalid date"
+) {
+  // ไม่ส่งค่ามา หรือเป็นวันที่ไม่ถูกต้อง ให้คงข้อมูลเดิมไว้
+  continue;
+}
+
+complaint[column] = validColumns[column];
     }
     complaint.updateAt = sequelize.literal("CURRENT_TIMESTAMP");
 
@@ -845,7 +898,7 @@ exports.updateComplaint = async (req, res) => {
         `<br/><br/>` +
         "สร้างรายงานสำเร็จ รอตรวจสอบ";
       const recipientEmail = arr_mail[i];
-      sendEmail(
+     sendEmail(
         recipientEmail,
         newComplaintId,
         complaint.reportid,
@@ -863,7 +916,7 @@ exports.updateComplaint = async (req, res) => {
         `<br/><br/>` +
         "สร้างรายงานสำเร็จ รอตรวจสอบ";
       const recipientEmail = arr_mail2[i];
-      sendEmail(
+     sendEmail(
         recipientEmail,
         newComplaintId,
         complaint.reportid,
@@ -1009,16 +1062,55 @@ exports.deleteComplaint = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// exports.deleteComplaint = async (req, res) => {
-//   try {
-//     const deleted = await Complaints.destroy({
-//       where: { id: req.params.id },
-//     });
-//     if (!deleted) {
-//       return res.status(404).json({ error: "Complaint not found" });
-//     }
-//     res.status(204).send();
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
+exports.updateRisk = async (req, res) => {
+  try {
+    const { id } = req.params;
+const { risk, remark } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        message: "ไม่พบ reportid",
+      });
+    }
+
+    if (![3, 4].includes(Number(risk))) {
+      return res.status(400).json({
+        message: "ค่า risk ต้องเป็น 3 หรือ 4 เท่านั้น",
+      });
+    }
+
+    const [updated] = await complaints.update(
+      {
+        risk: String(risk),
+        remark:remark,
+      },
+      {
+        where: {
+          reportid: id,
+        },
+      },
+    );
+
+    if (updated === 0) {
+      return res.status(404).json({
+        message: `ไม่พบข้อมูล Complaints ของ reportid ${id}`,
+      });
+    }
+
+    executeAndStoreQueryResult();
+
+    return res.status(200).json({
+      message: "อัปเดต Risk สำเร็จ",
+      reportid: id,
+      risk: Number(risk),
+    });
+
+  } catch (error) {
+    console.error("updateRisk Error:", error);
+
+    return res.status(500).json({
+      message: "เกิดข้อผิดพลาดในการอัปเดต Risk",
+      error: error.message,
+    });
+  }
+};

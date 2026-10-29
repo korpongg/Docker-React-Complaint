@@ -77,7 +77,7 @@ const Header = () => {
 
       case "2":
         return {
-          label: "HA",
+          label: "QDC",
           color: "#16a34a",
           background: "#f0fdf4",
         };
@@ -481,7 +481,7 @@ const Header = () => {
           String(userData?.role) === "1"
             ? "User"
             : String(userData?.role) === "2"
-              ? "HA"
+              ? "QDC"
               : String(userData?.role) === "3"
                 ? "Admin"
                 : "ไม่ระบุ"
@@ -612,14 +612,79 @@ const Header = () => {
     </AppBarStyled>
   );
 };
-
 const AppBarStyled = styled(AppBar)`
-  background: linear-gradient(180deg, #0b3a2d 0%, #004d40);
+  position: relative;
+  overflow: hidden;
 
-  box-shadow: 0px 2px 10px 0px #a3a3a3ad !important;
+  background:
+    radial-gradient(
+      ellipse at 18% -60%,
+      rgba(255, 255, 255, 0.16) 0%,
+      transparent 52%
+    ),
+    radial-gradient(
+      ellipse at 88% 130%,
+      rgba(52, 211, 153, 0.16) 0%,
+      transparent 48%
+    ),
+    linear-gradient(
+      110deg,
+      #063c2c 0%,
+      #07553e 24%,
+      #087653 48%,
+      #086047 72%,
+      #04382a 100%
+    ) !important;
+
+  box-shadow:
+    0 4px 18px rgba(0, 45, 32, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 30, 20, 0.35);
+
+  /* ลายเส้นบาง ๆ ให้มี texture */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background:
+      repeating-linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0.035) 0px,
+        rgba(255, 255, 255, 0.035) 1px,
+        transparent 1px,
+        transparent 12px
+      );
+
+    pointer-events: none;
+  }
+
+  /* Highlight ด้านบน */
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 5%;
+    right: 5%;
+    height: 2px;
+
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.55),
+      rgba(167, 243, 208, 0.65),
+      rgba(255, 255, 255, 0.35),
+      transparent
+    );
+
+    opacity: 0.8;
+    pointer-events: none;
+  }
 
   .Button-Text {
     font-size: 1.188rem;
+    color: #f8fafc;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   }
 
   .MuiTypography-root {
@@ -627,27 +692,19 @@ const AppBarStyled = styled(AppBar)`
     font-family: "Mali", sans-serif !important;
     margin-right: 30px;
   }
+
   .MuiTypography-root:hover {
-    text-decoration: underline;
+    text-decoration: none;
+
+    color: #d1fae5;
+
+    text-shadow:
+      0 0 8px rgba(167, 243, 208, 0.45),
+      0 0 18px rgba(52, 211, 153, 0.25);
+
+    transition: all 0.25s ease;
   }
-  .MuiTypography-root:hover {
-    -webkit-mask-image: linear-gradient(
-      -75deg,
-      rgba(0, 0, 0, 0.6) 30%,
-      #000 50%,
-      rgba(0, 0, 0, 0.6) 70%
-    );
-    -webkit-mask-size: 200%;
-    animation: shine 2s infinite;
-  }
-  @-webkit-keyframes shine {
-    from {
-      -webkit-mask-position: 150%;
-    }
-    to {
-      -webkit-mask-position: -50%;
-    }
-  }
+
   @media screen and (max-width: 680px) {
     .Button-Text {
       display: none !important;

@@ -15,13 +15,19 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import GeneralInfo from "../../form/GeneralInfo3";
 import { Send } from "lucide-react";
 import NavForm from "../../form/NavForm";
-
-
-
+import Workflow from "../../form/workflow";
+import { Container, Stack, Paper, Typography, Chip } from "@mui/material";
+import GeneralInfo4 from "../../form/GeneralInfoView4";
 
 import { ComplaintStyle } from "../../../styles/ComplaintStyle.style";
 import { ComplaintViewStyle } from "../../../styles/ComplaintView.style";
-
+import {
+  CircleAlert,
+  ClipboardCheck,
+  MessageSquareReply,
+  FileCheck2,
+  CheckCircle2,
+} from "lucide-react";
 
 import {
   chkAdmins,
@@ -53,6 +59,7 @@ const Complaint = ({ Mode }) => {
   const [formData, setFormData] = useState({});
   const [formData2, setFormData2] = useState({});
     const [formData3, setFormData3] = useState({});
+        const [formData4, setFormData4] = useState({});
   const [show, setShow] = useState(false);
    const [show3, setShow3] = useState(false);
   const [disable, setDisable] = useState(false);
@@ -80,7 +87,7 @@ const Complaint = ({ Mode }) => {
   const [patientdiagnosis, setPatientDiagnosis] = useState("");
   const [showUrgent, setShowUrgent] = useState(1);
   const [showAppeal, setShowAppeal] = useState(0);
-
+  const [activeStep, setActiveStep] = useState(2);
   const [name, setName] = useState("");
   const [array, setArray] = useState([]);
   const [Alert, setAlert] = useState(false);
@@ -205,6 +212,52 @@ const Complaint = ({ Mode }) => {
       setEditFormData({ ...EditFormData, [name]: EditDate });
     }
   };
+const steps = [
+    {
+      id: 0,
+      number: "01",
+      title: "ร้องเรียน",
+      subtitle: "Complaint",
+      icon: CircleAlert,
+      color: "#DC2626",
+      lightColor: "#FFF1F1",
+      borderColor: "#991B1B",
+
+    },
+    {
+      id: 1,
+      number: "02",
+      title: "ส่งหน่วยงาน",
+      subtitle: "Admin Review",
+      icon: ClipboardCheck,
+      color: "#475569",
+      lightColor: "#F4F6F8",
+      borderColor: "#475569",
+   
+    },
+    {
+      id: 2,
+      number: "03",
+      title: "ตอบกลับผู้ร้องเรียน",
+      subtitle: "Response",
+      icon: MessageSquareReply,
+      color: "#0284C7",
+      lightColor: "#EFF8FD",
+      borderColor: "#075985",
+   
+    },
+    {
+      id: 3,
+      number: "04",
+      title: "สรุปผลการวิเคราะห์",
+      subtitle: "Summary",
+      icon: FileCheck2,
+      color: "#16A34A",
+      lightColor: "#F0FAF4",
+      borderColor: "#166534",
+  
+    },
+  ];
 
   const fetchAttach = async () => {
     try {
@@ -232,6 +285,7 @@ const Complaint = ({ Mode }) => {
           previewImg: imgPathLocl,
         }));
       }
+ 
 
       const docExtensions = [
         "pdf",
@@ -880,43 +934,83 @@ FetchOccurranceById3(reportid);
   ];
 
   const handleSubmit = async (Mode) => {
-    if (!formData.summary_reply) {
-      setErrors((prev) => ({ ...prev, summary_reply: true }));
-      const el = inputRefs.current.summary_reply;
-      if (el) {
-        el.focus();
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-      return;
-    }
-    if (!formData.summary_analysis) {
-      setErrors((prev) => ({ ...prev, summary_analysis: true }));
-      const el = inputRefs.current.summary_analysis;
-      if (el) {
-        el.focus();
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-      return;
-    }
-    if (!formData.summary_solving) {
-      setErrors((prev) => ({ ...prev, summary_solving: true }));
-      const el = inputRefs.current.summary_solving;
-      if (el) {
-        el.focus();
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-      return;
-    }
+   if (!formData.summary_reply?.trim()) {
+  setErrors((prev) => ({
+    ...prev,
+    summary_reply: true,
+  }));
 
+  setTimeout(() => {
+    const el = inputRefs.current.summary_reply;
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      const textarea = el.querySelector("textarea");
+
+      if (textarea) {
+        textarea.focus();
+      }
+    }
+  }, 100);
+
+  return;
+}
+
+if (!formData.summary_analysis?.trim()) {
+  setErrors((prev) => ({
+    ...prev,
+    summary_analysis: true,
+  }));
+
+  setTimeout(() => {
+    const el = inputRefs.current.summary_analysis;
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      const textarea = el.querySelector("textarea");
+
+      if (textarea) {
+        textarea.focus();
+      }
+    }
+  }, 100);
+
+  return;
+}
+
+if (!formData.summary_solving?.trim()) {
+  setErrors((prev) => ({
+    ...prev,
+    summary_solving: true,
+  }));
+
+  setTimeout(() => {
+    const el = inputRefs.current.summary_solving;
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      const textarea = el.querySelector("textarea");
+
+      if (textarea) {
+        textarea.focus();
+      }
+    }
+  }, 100);
+
+  return;
+}
     const missingKeys = keydata.filter(({ key }) => {
       if (key === "deptrelate") {
         return !(formData[key] && formData[key].length);
@@ -1240,61 +1334,253 @@ FetchOccurranceById3(reportid);
       window.scrollTo({ top: yPosition, behavior: "smooth" });
     }
   };
+
+    const handleStepClick = (step) => {
+    // หน้า Admin นี้รองรับการเปิดดู Step 01
+    // และกลับมาที่ Step 02
+  if (step >= 0 && step <= 2) {
+      setActiveStep(step);
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  };
   return (
     <>
       
       <ComplaintStyle>
-        <div
-          className="px-4 py-3 "
-          style={{
-            background: "#FEF9C3",
-            border: "2px solid #262b20ff",
+     
+
+ <Box
+          sx={{
             position: "relative",
-            minHeight: "72px",
+            minWidth: "900px",
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
+            gap: 2,
+            
+            px: 3,
+            py: 2.5,
+            bgcolor: "#E0F2FE",
+            border: "1px solid #BAE6FD",
+            borderRadius: 2,
+            boxShadow: "0 4px 14px rgba(2,132,199,.08)",
+        
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-              textAlign: "center",
-              whiteSpace: "nowrap",
-            }}
-          >
-            <h2 style={{ margin: 0, fontWeight: 600 }}>
-              <AssignmentIcon
-                sx={{
-                  fontSize: 40, // 🔥 ปรับขนาด (px)
-                  color: "#166534", // 🔥 เปลี่ยนสี
-                }}
-              />{" "}
-              หมายเลขเอกสาร : {reportid}
-            </h2>
-          </div>
-
-          {/* ===== Right Actions ===== */}
-          <div
-            style={{
-              marginLeft: "auto",
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: "18px",
+              bgcolor: "#fff",
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              justifyContent: "center",
+              border: "1px solid #BAE6FD",
+              boxShadow: "0 6px 18px rgba(2,132,199,.12)",
             }}
-          ></div>
-        </div>
+          >
+            <Send size={34} color="#0284C7" />
+          </Box>
 
-        <Box className="MainContainer" style={{ background: "#F5F5F5" }}>
-          {Stage === 1 && (
-            <ComplaintViewStyle>
-              <GeneralInfo2
-                Mode={Mode}
+          <Box sx={{ flex: 1 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: "#075985",
+              }}
+            >
+              ตอบกลับผู้ร้องเรียน (หน่วยงาน)
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                color: "#64748B",
+                mt: 0.5,
+              }}
+            >
+              Complaint Response
+            </Typography>
+          </Box>
+
+          <Chip
+            label={"หมายเลขเอกสาร :" + reportid}
+            className="mt-5"
+            sx={{
+              bgcolor: "#bcd6f8ff",
+              color: "#075985",
+              fontWeight: 700,
+              borderRadius: 2,
+              position: "absolute",
+              right: 24,
+              maxWidth: "40%",
+            }}
+          />
+        </Box>
+
+  
+        <Box className="MainContainer">
+               <ComplaintViewStyle>
+              <Workflow
+                reportid={reportid}
+                activeStep={activeStep}
+                onStepClick={handleStepClick}
+                stepflow={3}
+              />
+            </ComplaintViewStyle>
+
+ {activeStep === 0 && (
+  <ComplaintViewStyle>
+     <div
+        className="complaint-detail-card mt-3"
+        style={{
+          "--step-color": steps[activeStep]?.color || "#64748B",
+          "--step-light":
+            steps[activeStep]?.lightColor || "#F8FAFC",
+        }}
+      >
+
+        {/* ================================
+            DETAIL HEADER
+        ================================= */}
+<div className="complaint-detail-top">
+
+  {/* STEP NUMBER */}
+  <div
+    className="complaint-step-number"
+    style={{
+      color:
+        steps[activeStep]?.color || "#64748B",
+
+      background:
+        steps[activeStep]?.lightColor || "#F8FAFC",
+
+      borderColor:
+        steps[activeStep]?.color || "#CBD5E1",
+    }}
+  >
+    {steps[activeStep]?.number || "01"}
+  </div>
+
+
+  {/* CENTER TITLE */}
+  <div className="complaint-detail-heading">
+
+    <div
+      className="complaint-detail-label"
+      style={{
+        color:
+          steps[activeStep]?.color || "#64748B",
+      }}
+    >
+      {activeStep === 0 && "COMPLAINT"}
+      {activeStep === 1 && "ADMIN REVIEW"}
+      {activeStep === 2 && "RESPONSE"}
+      {activeStep === 3 && "SUMMARY"}
+    </div>
+
+
+    <div className="complaint-detail-title">
+
+      {activeStep === 0 &&
+        "รายละเอียดข้อร้องเรียน"}
+
+      {activeStep === 1 &&
+        "รายละเอียดการตรวจสอบ"}
+
+      {activeStep === 2 &&
+        "รายละเอียดการตอบกลับ"}
+
+      {activeStep === 3 &&
+        "รายละเอียดสรุปผลการวิเคราะห์"}
+
+    </div>
+
+
+    <div className="complaint-detail-description">
+
+      {activeStep === 0 &&
+        "ข้อมูลและรายละเอียดที่ผู้ร้องเรียนแจ้งเข้าม"}
+
+      {activeStep === 1 &&
+        "รายละเอียดการพิจารณาและดำเนินการของหน่วยงาน"}
+
+      {activeStep === 2 &&
+        "รายละเอียดการตอบกลับและการสื่อสารกับผู้ร้องเรียน"}
+
+      {activeStep === 3 &&
+        "ผลการวิเคราะห์ สรุปประเด็น และผลการดำเนินการ"}
+
+    </div>
+
+  </div>
+
+
+  {/* RIGHT STATUS */}
+  <div
+    className="complaint-current-step"
+    style={{
+      color:
+        steps[activeStep]?.color || "#64748B",
+
+      background:
+        steps[activeStep]?.lightColor || "#F8FAFC",
+
+      borderColor:
+        steps[activeStep]?.color || "#CBD5E1",
+    }}
+  >
+
+    <span
+      className="complaint-current-dot"
+      style={{
+        background:
+          steps[activeStep]?.color || "#64748B",
+      }}
+    />
+
+    ขั้นตอนที่ {steps[activeStep]?.number || "01"}
+
+  </div>
+
+</div>
+
+
+        {/* ================================
+            ACCENT LINE
+        ================================= */}
+
+        <div
+          className="complaint-detail-accent"
+          style={{
+            background:
+              steps[activeStep]?.color || "#64748B",
+          }}
+        />
+           <div
+      className="mb-5"
+      style={{
+        margin: "16px 20px 0",
+        padding: "20px 28px",
+        background: "#FFFFFF",
+        border: "1px solid #E5E7EB",
+        borderRadius: "16px",
+        boxShadow: "0 8px 28px rgba(30,35,30,.06)",
+        position: "relative",
+      }}
+    >
+        <GeneralInfo2
+                  Mode="Show"
                 array={array}
                 data={formData2}
                 disable={disable}
-                show={show}
+              show={true}
                 setDataFunction={handleDataChange}
                 setSingleDataFunction={handleDataChangeSingle}
                 missingKeys={AlertBorder}
@@ -1310,9 +1596,156 @@ FetchOccurranceById3(reportid);
                 handleDataChangeCheckbox2={handleDataChangeCheckbox2}
                 
               />
+    </div>
+        </div>
+ 
+  </ComplaintViewStyle>
+)}
+{activeStep === 1 && (
+  <ComplaintViewStyle>
 
-     <GeneralInfo3
-                  Mode={Mode}
+ <div
+        className="complaint-detail-card mt-3"
+        style={{
+          "--step-color": steps[activeStep]?.color || "#64748B",
+          "--step-light":
+            steps[activeStep]?.lightColor || "#F8FAFC",
+        }}
+      >
+
+        {/* ================================
+            DETAIL HEADER
+        ================================= */}
+<div className="complaint-detail-top">
+
+  {/* STEP NUMBER */}
+  <div
+    className="complaint-step-number"
+    style={{
+      color:
+        steps[activeStep]?.color || "#64748B",
+
+      background:
+        steps[activeStep]?.lightColor || "#F8FAFC",
+
+      borderColor:
+        steps[activeStep]?.color || "#CBD5E1",
+    }}
+  >
+    {steps[activeStep]?.number || "01"}
+  </div>
+
+
+  {/* CENTER TITLE */}
+  <div className="complaint-detail-heading">
+
+    <div
+      className="complaint-detail-label"
+      style={{
+        color:
+          steps[activeStep]?.color || "#64748B",
+      }}
+    >
+      {activeStep === 0 && "COMPLAINT"}
+      {activeStep === 1 && "ADMIN REVIEW"}
+      {activeStep === 2 && "RESPONSE"}
+      {activeStep === 3 && "SUMMARY"}
+    </div>
+
+
+    <div className="complaint-detail-title">
+
+      {activeStep === 0 &&
+        "รายละเอียดข้อร้องเรียน"}
+
+      {activeStep === 1 &&
+        "รายละเอียดการตรวจสอบ"}
+
+      {activeStep === 2 &&
+        "รายละเอียดการตอบกลับ"}
+
+      {activeStep === 3 &&
+        "รายละเอียดสรุปผลการวิเคราะห์"}
+
+    </div>
+
+
+    <div className="complaint-detail-description">
+
+      {activeStep === 0 &&
+        "ข้อมูลและรายละเอียดที่ผู้ร้องเรียนแจ้งเข้าม"}
+
+      {activeStep === 1 &&
+        "รายละเอียดการพิจารณาและดำเนินการของหน่วยงาน"}
+
+      {activeStep === 2 &&
+        "รายละเอียดการตอบกลับและการสื่อสารกับผู้ร้องเรียน"}
+
+      {activeStep === 3 &&
+        "ผลการวิเคราะห์ สรุปประเด็น และผลการดำเนินการ"}
+
+    </div>
+
+  </div>
+
+
+  {/* RIGHT STATUS */}
+  <div
+    className="complaint-current-step"
+    style={{
+      color:
+        steps[activeStep]?.color || "#64748B",
+
+      background:
+        steps[activeStep]?.lightColor || "#F8FAFC",
+
+      borderColor:
+        steps[activeStep]?.color || "#CBD5E1",
+    }}
+  >
+
+    <span
+      className="complaint-current-dot"
+      style={{
+        background:
+          steps[activeStep]?.color || "#64748B",
+      }}
+    />
+
+    ขั้นตอนที่ {steps[activeStep]?.number || "01"}
+
+  </div>
+
+</div>
+
+
+        {/* ================================
+            ACCENT LINE
+        ================================= */}
+
+        <div
+          className="complaint-detail-accent"
+          style={{
+            background:
+              steps[activeStep]?.color || "#64748B",
+          }}
+        />
+        <div>
+      {formData3 && Object.keys(formData3).length > 0 ? (
+           <div
+      className="mb-5"
+      style={{
+        margin: "16px 20px 0",
+        padding: "20px 28px",
+        background: "#FFFFFF",
+        border: "1px solid #E5E7EB",
+        borderRadius: "16px",
+        boxShadow: "0 8px 28px rgba(30,35,30,.06)",
+        position: "relative",
+      }}
+    >   <GeneralInfo3
+                     Mode="Show"
+        
                   data={formData3}
                   setDataFunction={handleDataChange}
                   setSingleDataFunction={handleDataChangeSingle}
@@ -1328,166 +1761,96 @@ FetchOccurranceById3(reportid);
                   checkbox={checkbox}
                   setErrors={setErrors}
                   handleShow={handleShow3}
-                  show={show3}
+                   show={true}
                   errors={errors}
                   inputRefs={inputRefs}
-                />
-              <Divider variant="middle" flexItem sx={{ m: 1 }} />
-            </ComplaintViewStyle>
-          )}
+                /></div>
+       
+      ) : (
+        <div style={{ padding: "30px", textAlign: "center" }}>
+          กำลังโหลดข้อมูล...
+        </div>
+      )}
+    </div>
+        </div>
 
-          {Mode === "Show" &&
-            (isAdmin || isEXEC) &&
-            Stage === 1 &&
-            ["2", "5"].includes(formData.formstatus) && (
-              <>
-                <Divider variant="middle" flexItem sx={{ m: 1 }} />
-                <ReportComment data={formData} />
-              </>
-            )}
-        </Box>
-        <Box className="MainContainer">
+   
+  </ComplaintViewStyle>
+)}
+
+
+
+
+
+
+
+
+            
           {Stage === 1 && (
             <>
-              <div
-                className="px-4 py-3 "
-                style={{
-                  background: "#ffffff",
-                  border: "2px solid #262b20ff",
-                  position: "relative",
-                  minHeight: "72px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <IconButton
-                  onClick={() => navigate(-1)}
-                  sx={{
-                    position: "absolute",
-                    left: 16,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    backgroundColor: "#e6f4ea",
-                    "&:hover": {
-                      backgroundColor: "#166534",
-                      color: "#fff",
-                    },
-                  }}
-                >
-                  <ArrowBackIcon />
-                </IconButton>
-                {/* ===== Center Title ===== */}
+       {activeStep === 2 && (
 
-                <div
-                  style={{
-                    position: "absolute",
-                    left: "50%",
-                    top: "50%",
-                    transform: "translate(-50%, -50%)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: "50%",
-                        bgcolor: "#E0F2FE",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Send size={28} color="#0284C7" />
-                    </Box>
+        <>
+            <div
+  className="page-title"
+  style={{
+    border: "2px solid #D6EAF3",
+    boxShadow: "0 2px 7px rgba(15, 23, 42, 0.045)",
+  }}
+>
+  <div className="page-title-top">
 
-                    <h4
-                      style={{
-                        margin: 0,
-                        fontWeight: 600,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {Mode === "Add" &&
-                        "แบบบันทึกการตอบกลับผลการจัดการข้อร้องเรียน"}
-                      {Mode === "Edit" &&
-                        "แบบบันทึกการตอบกลับผลการจัดการข้อร้องเรียน (แก้ไข)"}
-                      {Mode === "Show" &&
-                        "แบบบันทึกการตอบกลับผลการจัดการข้อร้องเรียน (ดูได้เท่านั้น)"}
-                      <div style={{ fontSize: "14px", color: "#6B7280" }}>
-                        หน่วยงานผู้ถูกร้องเรียน
-                      </div>
-                    </h4>
-                  </div>
-                </div>
+    <div
+      className="page-title-index"
+      style={{
+        background: "linear-gradient(145deg, #0284C7 0%, #0369A1 100%)",
+        boxShadow: "0 3px 8px rgba(2, 132, 199, 0.18)",
+        color:'white',
+      }}
+    >
+      03
+    </div>
 
-                {/* ===== Right Actions ===== */}
-                <div
-                  style={{
-                    marginLeft: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  {formData && Mode !== "Add" && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        right: "16px",
-                        bottom: "10px",
-                        fontSize: "14px",
-                        color: "#374151",
-                        whiteSpace: "nowrap",
-                        alignItems: "center",
-                        gap: "8px",
-                        background: "#F1F5F9",
-                        padding: "6px 14px",
-                        borderRadius: "999px",
-                        border: "1px solid #E2E8F0",
-                        fontSize: "13px",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontWeight: 600,
-                          letterSpacing: "1px",
-                          color: "#0F172A",
-                        }}
-                      >
-                        เอกสาร : {reportid}
-                      </span>
-                    </div>
-                  )}
+    <div className="page-title-content">
 
-                  {Mode === "Add" && (
-                    <Tooltip title="ล้างข้อมูลทั้งหมด">
-                      <IconButton
-                        size="small"
-                        onClick={ClearData}
-                        sx={{
-                          color: "#6B7280",
-                          "&:hover": {
-                            color: "#EF4444",
-                            backgroundColor: "#FEE2E2",
-                          },
-                        }}
-                      >
-                        <CleaningServicesIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </div>
-              </div>
+      <div
+        className="page-title-eyebrow"
+        style={{
+          color: "#0284C7",
+        }}
+      >
+        INCIDENT RESPONSE
+      </div>
 
-              <GeneralInfo
+      <h2>
+        ตอบกลับผู้ร้องเรียน
+      </h2>
+
+      <p>
+      บันทึกข้อมูลการตอบกลับและรายละเอียดที่เกี่ยวข้องกับข้อร้องเรียน
+      </p>
+
+    </div>
+
+    <div
+      className="page-title-mode"
+      style={{
+        color: "#0369A1",
+        background: "#F0F9FF",
+        border: "1px solid #BAE6FD",
+      }}
+    >
+      {Mode === "Add" && "เพิ่มข้อมูล"}
+      {Mode === "Edit" && "แก้ไขข้อมูล"}
+      {Mode === "Show" && "รายละเอียด"}
+    </div>
+
+  </div>
+</div>
+<div className="page-form"   style={{
+    border: "2px solid #D6EAF3",
+    boxShadow: "0 2px 7px rgba(15, 23, 42, 0.045)",
+  }}>  <GeneralInfo
                 Mode={Mode}
                 items={array}
                 data={formData}
@@ -1519,22 +1882,7 @@ FetchOccurranceById3(reportid);
                 inputRefs={inputRefs}
               />
 
-              <Divider variant="middle" flexItem sx={{ m: 1 }} />
-            </>
-          )}
-
-          {Mode === "Show" &&
-            (isAdmin || isEXEC) &&
-            Stage === 1 &&
-            ["2", "5"].includes(formData.formstatus) && (
-              <>
-                <Divider variant="middle" flexItem sx={{ m: 1 }} />
-                <ReportComment data={formData} />
-              </>
-            )}
-        </Box>
-
-        <NavForm
+                <NavForm
           Mode={Mode}
           Data={formData}
           Access={formData.createby === UserData.userid || isAdmin}
@@ -1550,6 +1898,31 @@ FetchOccurranceById3(reportid);
           ToStage={ToStage}
           ClearData={ClearData}
         />
+</div>
+        
+        </>
+   
+  )}
+ 
+
+ 
+             
+          
+            </>
+          )}
+
+          {Mode === "Show" &&
+            (isAdmin || isEXEC) &&
+            Stage === 1 &&
+            ["2", "5"].includes(formData.formstatus) && (
+              <>
+                <Divider variant="middle" flexItem sx={{ m: 1 }} />
+                <ReportComment data={formData} />
+              </>
+            )}
+        </Box>
+
+      
       </ComplaintStyle>
     </>
   );

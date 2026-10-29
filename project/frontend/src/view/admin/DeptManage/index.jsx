@@ -47,7 +47,7 @@ const DeptManagement = () => {
         try {
             const url = `${apiUrl}/affiliations`;
             const response = await axios.get(url);
-            console.log(response.data)
+     
             if (response.status === 200 || response.status === 201) {
                 setAffData(response.data);
             }

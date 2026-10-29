@@ -5,14 +5,16 @@ const ROLES_LIST = require("../../config/roles_list");
 const verifyRoles = require("../../middleware/verifyRoles");
 
 // Create a new user
-router.post("/", verifyRoles(ROLES_LIST.Admin), usersController.createUser);
+router.post("/", verifyRoles(ROLES_LIST.Editor, ROLES_LIST.Admin), usersController.createUser);
 
 router.route("/faction")
-  .get(verifyRoles(ROLES_LIST.Admin), usersController.getAllUsersFaction)
+  .get(verifyRoles(ROLES_LIST.Editor, ROLES_LIST.Admin), usersController.getAllUsersFaction)
 
 router.route("/")
-  .get(verifyRoles(ROLES_LIST.Admin), usersController.getAllUsers)
-  .put(verifyRoles(ROLES_LIST.Admin), usersController.updateUser);
+  .get(verifyRoles(ROLES_LIST.Editor, ROLES_LIST.Admin), usersController.getAllUsers)
+  .put(verifyRoles(ROLES_LIST.Editor, ROLES_LIST.Admin), usersController.updateUser)
+  .delete(verifyRoles(ROLES_LIST.Editor,ROLES_LIST.Admin), usersController.deleteUser);
+
 
 router.route("/:userid").get(verifyRoles(ROLES_LIST.User, ROLES_LIST.Editor, ROLES_LIST.Admin), usersController.getUser);
 

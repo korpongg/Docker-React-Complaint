@@ -7,11 +7,12 @@ import Autocomplete from "@mui/material/Autocomplete";
 import dayjs from "dayjs";
 import GreenCircle from "./GreenCircle";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
 import ReportLog from "./ReportLog";
 import ReportLog2 from "./ReportLog2";
 import AutoCompleteText from "./AutoCompleteDep";
-
+import severityA from "../../assets/A.png";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Radio from "@mui/material/Radio";
@@ -21,7 +22,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import { Table, InputGroup } from "react-bootstrap";
-
+import { Chip, Typography } from "@mui/material";
 import FormGroup from "@mui/material/FormGroup";
 import Checkbox from "@mui/material/Checkbox";
 import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
@@ -29,34 +30,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 dayjs.extend(customParseFormat);
 import { color } from "@mui/system";
-
-const options = [
-  "ไม่ระบุ",
-  "PCT ศัลยกรรม",
-  "PCT สูตินรีเวช-ปริกำเนิด",
-  "PCT หัวใจและหลอดเลือด",
-  "PCT อายุรกรรม 1",
-  "PCT อายุรกรรม 2",
-  "PCT หู คอ จมูก",
-  "PCT อายุรกรรมทางเดินอาหาร",
-  "PCT ตา",
-  "PCT กุมารเวชกรรม",
-  "PCT ฉุกเฉิน",
-  "PCT Palliative Care Team",
-];
-
-const severityLevels = [
-  { code: "I", label: "อันตรายมาก", color: "#b91c1c", bg: "#fee2e2" },
-  { code: "H", label: "สูงมาก", color: "#dc2626", bg: "#fee2e2" },
-  { code: "G", label: "สูง", color: "#ea580c", bg: "#ffedd5" },
-  { code: "F", label: "ค่อนข้างสูง", color: "#f97316", bg: "#ffedd5" },
-  { code: "E", label: "ปานกลาง", color: "#ca8a04", bg: "#fef9c3" },
-  { code: "D", label: "ค่อนข้างต่ำ", color: "#65a30d", bg: "#ecfccb" },
-  { code: "C", label: "ต่ำ", color: "#16a34a", bg: "#dcfce7" },
-  { code: "B", label: "ต่ำมาก", color: "#0284c7", bg: "#e0f2fe" },
-  { code: "A", label: "เล็กน้อย", color: "#6b7280", bg: "#f3f4f6" },
-];
-
+import { severityLevels,generalRiskOptions,clinicalRiskOptions,complaintCategoryOptions } from "../../data/form/DataDict_Risk";
 const GeneralInfo = ({
   Mode,
   data,
@@ -65,6 +39,7 @@ const GeneralInfo = ({
   disable,
   time,
   images,
+  documentFiles,
   setImages,
   setDataFunction,
   handleSetBoard,
@@ -82,6 +57,7 @@ const GeneralInfo = ({
   handleDateChange,
   handleDataChangeCheckbox,
   handleDataChangeCheckbox2,
+  handleDocumentUpload,
   depoptiondata,
   setCheckBoxFunction,
   handleSetPerson,
@@ -96,15 +72,91 @@ const GeneralInfo = ({
   errors,
   inputRefs,
 }) => {
+
+  const [openSeverityDetail, setOpenSeverityDetail] = useState(false);
   const [value, setValue] = useState(null);
   const [inputValue, setInputValue] = useState("");
   const [tosentvalue, settosentvalue] = useState("select"); // select or textinput
-
+  const [selectedImage, setSelectedImage] = useState(null);
   const [timePicker, setTimePicker] = useState(null); // dayjs
+  const [selectedRiskTypes, setSelectedRiskTypes] = useState({
+    general:
+      data?.generalRisk === true || String(data?.generalRisk ?? "") === "1",
+
+    clinical:
+      data?.clinicalRisk === true || String(data?.clinicalRisk ?? "") === "1",
+  });
+  const selectedCategories = Array.isArray(data?.complaintCategories)
+    ? data.complaintCategories
+    : [];
+
+  const selectedCategoryCount = selectedCategories.length;
+  const [activeRiskTab, setActiveRiskTab] = useState("general");
+
   const selectedSeverity = severityLevels.find(
     (s) => s.code === data?.suggestion,
   );
 
+
+
+  const isRiskChecked = (value) =>
+    value === true || String(value ?? "").trim() === "1";
+
+  useEffect(() => {
+    setSelectedRiskTypes({
+      general: isRiskChecked(data?.generalRisk),
+      clinical: isRiskChecked(data?.clinicalRisk),
+    });
+  }, [data?.generalRisk, data?.clinicalRisk]);
+
+  useEffect(() => {
+    if (selectedRiskTypes[activeRiskTab]) return;
+
+    if (selectedRiskTypes.general) {
+      setActiveRiskTab("general");
+    } else if (selectedRiskTypes.clinical) {
+      setActiveRiskTab("clinical");
+    }
+  }, [selectedRiskTypes, activeRiskTab]);
+
+  const handleRiskTypeChange = (type, checked) => {
+    // อัปเดตเฉพาะ Checkbox ที่ผู้ใช้กด
+    setSelectedRiskTypes((prev) => ({
+      ...prev,
+      [type]: checked,
+    }));
+
+    // บันทึกเฉพาะฟิลด์ที่เปลี่ยน ห้าม setDataFunction 2 ครั้ง
+    const field = type === "general" ? "generalRisk" : "clinicalRisk";
+
+    setDataFunction({ target: { value: checked ? "1" : "0" } }, field);
+
+    // เมื่อเลือก ให้เปิดแท็บประเภทนั้น
+    if (checked) {
+      setActiveRiskTab(type);
+    } else {
+      // ถ้าปิดแท็บที่กำลังดู ให้สลับไปอีกประเภทที่ยังเลือกอยู่
+      setSelectedRiskTypes((prev) => {
+        const next = { ...prev, [type]: false };
+
+        if (activeRiskTab === type) {
+          if (next.general) {
+            setActiveRiskTab("general");
+          } else if (next.clinical) {
+            setActiveRiskTab("clinical");
+          }
+        }
+
+        return next;
+      });
+    }
+  };
+
+  const showGeneralRisk =
+    selectedRiskTypes.general && activeRiskTab === "general";
+
+  const showClinicalRisk =
+    selectedRiskTypes.clinical && activeRiskTab === "clinical";
   useEffect(() => {
     if (data.pct) {
       if (options.includes(data.pct)) {
@@ -125,80 +177,59 @@ const GeneralInfo = ({
       setTimePicker(null);
     }
   }, [data?.time]);
+  const isImageFile = (filename) => {
+    if (!filename) return false;
 
-  const options = [
-    {
-      group: "ข้อเสนอแนะ",
-      name: "suggestion",
-      items: [
-        {
-          value: "A",
-          label:
-            "A (เกิดที่นี่) ยังไม่เกิดเหตุการณ์ แต่มีความเสี่ยง / มีโอกาสเกิดความผิดพลาด",
-        },
-        {
-          value: "B",
-          label:
-            "B (เกิดที่ไกล) เกิดเหตุการณ์ / ความผิดพลาดขึ้นแล้ว แต่ยังไม่มีผลกระทบใดๆ ถึงผู้ป่วย",
-        },
-      ],
-    },
-    {
-      group: "ข้อร้องเรียน",
-      name: "complaint",
-      items: [
-        {
-          value: "C",
-          label:
-            "C (เกิดกับใคร) เกิดเหตุการณ์ / ความผิดพลาดขึ้น และมีผลกระทบถึงผู้ป่วย แต่ไม่เกิดอันตรายหรือเสียหาย",
-        },
-        {
-          value: "D",
-          label:
-            "D (ให้ระวัง) เกิดความผิดพลาดขึ้น มีผลกระทบถึงผู้ป่วยต้องให้การดูแลเฝ้าระวังเป็นพิเศษว่าจะไม่เป็นอันตราย",
-        },
-        {
-          value: "E",
-          label:
-            "E ให้การรักษา(ต้องรักษา) เกิดความผิดพลาดขึ้น มีผลกระทบถึงผู้ป่วยเกิดอันตรายชั่วคราวที่ต้องแก้ไข / ให้การรักษาเพิ่มมากขึ้นเพิ่มเติม",
-        },
-        {
-          value: "F",
-          label:
-            "F (เยียวยานาน) เกิดความผิดพลาดขึ้น มีผลกระทบที่ต้องใช้เวลาแก้ไขนานกว่าปกติหรือเกินกำหนด ผู้ป่วยต้องรักษา / นอนโรงพยาบาลนานขึ้น",
-        },
-        {
-          value: "G",
-          label:
-            "G (ต้องพิการ) เกิดความผิดพลาด มีผลกระทบทำให้เสียชื่อเสียง / ความเชื่อถือ อาจฟ้องร้อง / มีผลระยะยาว หรือทำให้ผู้ป่วยเกิดความพิการถาวร",
-        },
-        {
-          value: "H",
-          label:
-            "H (ต้องการปั๊ม) เกิดความผิดพลาด ถึงผู้ป่วย มีผลทำให้ต้องทำการช่วยชีวิต เสียชื่อเสียง หรือมีการเรียกร้องค่าเสียหาย",
-        },
-        {
-          value: "I",
-          label:
-            "I (จำใจลา) เกิดความผิดพลาด ถึงผู้ป่วย เป็นสาเหตุทำให้เสียชีวิต เสียชื่อเสียง มีการฟ้องร้องทางศาล / สื่อ",
-        },
-      ],
-    },
-  ];
+    const ext = filename.split(".").pop().toLowerCase();
+
+    return ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
+  };
+
+  const getFileIcon = (filename) => {
+    if (!filename) return "bi-file-earmark";
+
+    const ext = filename.split(".").pop().toLowerCase();
+
+    if (["doc", "docx"].includes(ext)) {
+      return "bi-file-earmark-word";
+    }
+
+    if (["xls", "xlsx"].includes(ext)) {
+      return "bi-file-earmark-excel";
+    }
+
+    if (["pdf"].includes(ext)) {
+      return "bi-file-earmark-pdf";
+    }
+
+    return "bi-file-earmark";
+  };
+
+  // ==========================================
+  // 1. ความเสี่ยงทั่วไป: ระดับ 1–5
+  // ==========================================
+
   const handleImageUpload = (files) => {
     const fileArray = Array.from(files);
 
     setImages((prev) => [...prev, ...fileArray]);
   };
- 
+
   return (
     <>
       <div className="section-card">
         <div className="section-header">
-          <GreenCircle />
-          ข้อมูลการร้องเรียน
-        </div>
+          <span className="section-number">01</span>
 
+          <div className="section-header-content">
+            <div className="section-title">ข้อมูลการร้องเรียน</div>
+
+            <div className="section-description">
+              ระบุข้อมูลเบื้องต้นของเรื่องร้องเรียน วันที่ เวลา
+              และประเภทผู้รับบริการ
+            </div>
+          </div>
+        </div>
         <div className="section-body">
           <Container>
             <Row className="g-4 align-items-end">
@@ -319,14 +350,19 @@ const GeneralInfo = ({
       </div>
       <div className="section-card">
         <div className="section-header">
-          <GreenCircle />
-          ข้อมูลการบันทึก
-        </div>
+          <div className="section-number">02</div>
 
+          <div className="section-header-content">
+            <div className="section-title">ข้อมูลการรับเรื่อง</div>
+            <div className="section-description">
+              ผู้รับเรื่องและช่องทางการติดต่อ
+            </div>
+          </div>
+        </div>
         <div className="section-body">
           <Container>
-            <Row className="">
-              <Col md={3}>บันทึกโดย</Col>
+            <Row className="mb-5">
+              <Col className="form-group-title">บันทึกโดย</Col>
 
               <Col md={9}>
                 <RadioGroup
@@ -389,20 +425,9 @@ const GeneralInfo = ({
                 </RadioGroup>
               </Col>
             </Row>
-          </Container>
-        </div>
-      </div>
 
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          ช่องทางการรับเรื่อง
-        </div>
-
-        <div className="section-body">
-          <Container>
-            <Row>
-              <Col md={3}>รับข้อร้องเรียนทาง</Col>
+            <Row className="mt-5">
+              <Col className="form-group-title">รับข้อร้องเรียนทาง</Col>
               <Col md={9}>
                 <RadioGroup
                   row
@@ -469,16 +494,26 @@ const GeneralInfo = ({
           </Container>
         </div>
       </div>
+
       <div className="section-card">
         <div className="section-header">
-          <GreenCircle />
-          ผู้ร้องเรียน
+          <div className="section-number">03</div>
+
+          <div className="section-header-content">
+            <div className="section-title">ข้อมูลผู้เกี่ยวข้อง</div>
+
+            <div className="section-description">
+              ข้อมูลผู้ร้องเรียนและผู้ป่วยที่เกี่ยวข้องกับเรื่องร้องเรียน
+            </div>
+          </div>
         </div>
 
         <div className="section-body">
           <Container>
             <Row className="g-4">
-              <Col md={6}>
+              <Col className="form-group-title">ข้อมูลผู้ร้องเรียน</Col>
+
+              <Col md={4}>
                 <label className="form-label">ชื่อ - สกุล</label>
                 <InputGroup>
                   <InputGroup.Text>
@@ -594,20 +629,10 @@ const GeneralInfo = ({
                 )}
               </Col>
             </Row>
-          </Container>
-        </div>
-      </div>
 
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          ข้อมูลผู้ป่วย
-        </div>
-
-        <div className="section-body">
-          <Container>
-            <Row className="g-4">
-              <Col md={3}>
+            <Row className="g-4 mt-4">
+              <Col className="form-group-title">ข้อมูลผู้ป่วย</Col>
+              <Col md={2}>
                 <label className="form-label">HN/VN</label>
                 <Form.Control
                   ref={(el) => (inputRefs.current.patient_hn = el)}
@@ -644,7 +669,7 @@ const GeneralInfo = ({
                 )}
               </Col>
 
-              <Col md={6}>
+              <Col md={4}>
                 <label className="form-label">ชื่อ - สกุล ผู้ป่วย</label>
 
                 <InputGroup>
@@ -682,7 +707,7 @@ const GeneralInfo = ({
                 )}
               </Col>
 
-              <Col md={3}>
+              <Col md={2}>
                 <label className="form-label">อายุ</label>
                 <InputGroup>
                   <Form.Control
@@ -717,7 +742,7 @@ const GeneralInfo = ({
                 </InputGroup>
               </Col>
 
-              <Col md={6}>
+              <Col md={2}>
                 <label className="form-label">AN</label>
                 <Form.Control
                   value={data?.patient_an || null}
@@ -732,13 +757,20 @@ const GeneralInfo = ({
 
       <div className="section-card">
         <div className="section-header">
-          <GreenCircle />
-          ติดต่อกลับ
+          <div className="section-number">04</div>
+
+          <div className="section-header-content">
+            <div className="section-title">การติดต่อกลับ</div>
+
+            <div className="section-description">
+              ระบุความต้องการของผู้ร้องเรียนในการรับการติดต่อและการตอบกลับจากโรงพยาบาล
+            </div>
+          </div>
         </div>
 
         <div className="section-body">
           <div className="field-row">
-            <Col>ต้องการติดต่อกลับ</Col>
+            <Col className="form-group-title">ต้องการติดต่อกลับ</Col>
             <RadioGroup
               id="involved"
               aria-labelledby="involved"
@@ -778,7 +810,7 @@ const GeneralInfo = ({
           </div>
           {showUrgent == 1 && (
             <div className="field-row">
-              <Col>ความเร่งด่วน</Col>
+              <Col className="form-group-title">ความเร่งด่วน</Col>
               <RadioGroup
                 row
                 id="urgent"
@@ -814,20 +846,38 @@ const GeneralInfo = ({
 
       <div className="section-card">
         <div className="section-header">
-          <GreenCircle />
-          หน่วยงาน / บุคคลที่ถูกร้องเรียน
-          <span className="required-badge">จำเป็นต้องระบุอย่างน้อย 1 คน</span>
+          <div className="section-number">05</div>
+
+          <div className="section-header-content">
+            <div className="section-title">หน่วยงานและบุคคลที่ถูกร้องเรียน</div>
+
+            <div className="section-description">
+              ระบุหน่วยงานหรือบุคคลที่เกี่ยวข้องกับข้อร้องเรียน{" "}
+              <span className="required-badge">
+                จำเป็นต้องระบุอย่างน้อย 1 คน
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="section-body">
+        <div
+          className="section-body"
+          ref={(el) => (inputRefs.current.appeal = el)}
+        >
           <RadioGroup
             row
             id="appeal"
-            ref={(el) => (inputRefs.current.appeal = el)}
             aria-labelledby="appeal"
             defaultValue="0"
             name="appeal"
-            onChange={(e) => setDataFunction(e, "appeal")}
+            onChange={(e) => {
+              setErrors((prev) => ({
+                ...prev,
+                appeal: false,
+              }));
+
+              setDataFunction(e, "appeal");
+            }}
             value={data?.appeal || "0"}
           >
             <FormControlLabel
@@ -848,13 +898,18 @@ const GeneralInfo = ({
                   + เพิ่มรายชื่อ
                 </Button>
               </div>
-              <Table striped bordered responsive>
+              <Table
+                striped
+                bordered
+                responsive
+                className="appeal-person-table"
+              >
                 <thead>
                   <tr>
                     <th style={{ width: "5%" }}>#</th>
-                    <th style={{ width: "25%" }}>ชื่อ</th>
+                    <th style={{ width: "30%" }}>ชื่อ</th>
                     <th style={{ width: "30%" }}>แผนก</th>
-                    <th style={{ width: "40%" }}>สังกัด</th>
+                    <th style={{ width: "35%" }}>สังกัด</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -920,7 +975,7 @@ const GeneralInfo = ({
                             onChange={(e) => setDataPerson(e, index + 1)}
                             value={item?.faction || "0"}
                           >
-                              <FormControlLabel
+                            <FormControlLabel
                               sx={{ p: 1 }}
                               disabled={Mode === "Show"}
                               value="0"
@@ -976,277 +1031,587 @@ const GeneralInfo = ({
         </div>
       </div>
 
-      <div className="section-card">
-        <div className="section-header required">
-          <GreenCircle />
-          <span>ส่วนที่ 1 : สรุปสาระ / ประเด็นร้องเรียน</span>
-          <span className="required-badge">จำเป็น</span>
+      <div className="section-card section-card-important">
+        <div className="section-header section-header-important">
+          <div className="section-number section-number-important">
+            <span>★</span>
+          </div>
+
+          <div className="section-header-content">
+            <div className="section-title section-title-important">
+              รายละเอียดข้อร้องเรียนและความคาดหวัง
+            </div>
+
+            <div className="section-description">
+              สรุปประเด็นสำคัญของเรื่องร้องเรียนและสิ่งที่ผู้ร้องเรียนต้องการให้โรงพยาบาลดำเนินการ
+            </div>
+          </div>
+
+          <div className="section-important-badge">สำคัญ</div>
         </div>
 
-        <div className="section-body">
-          <Container>
-            <Row>
-              <div
-                className={
-                  missingKeys.some((item) => item.key === "summarize")
-                    ? "AreaBOX SETERRORBOX"
-                    : "AreaBOX"
-                }
-              >
-                <TextField
-                  fullWidth
-                  ref={(el) => (inputRefs.current.summarize = el)}
-                  id="summarize"
-                  disabled={Mode === "Show"}
-                  label="เขียนรายละเอียด"
-                  value={data?.summarize || ""}
-                  onChange={(e) => {
-                    setErrors((prev) => ({ ...prev, summarize: false }));
+        <div className="form-subsection">
+          <div className="form-subtitle">
+            <span className="form-subtitle-number">01</span>
 
-                    setDataFunction(e, "summarize");
-                  }}
-                  variant="standard"
-                  multiline
-                  rows={4}
-                  sx={{ marginBottom: 1 }}
-                  style={{
-                    borderColor: errors.summarize ? "#dc3545" : "",
-                    boxShadow: errors.summarize
-                      ? "0 0 0 0.2rem rgba(220,53,69,.25)"
-                      : "",
-                    boxShadow: errors.summarize
-                      ? "0 0 0 0.2rem rgba(220,53,69,.25)"
-                      : "",
-                  }}
-                />
-              </div>
-            </Row>
-            {errors.summarize && (
-              <Form.Control.Feedback
-                type="invalid"
-                style={{ display: "flex", alignItems: "center", gap: 4 }}
-              >
-                <ErrorOutlineIcon fontSize="small" />
-                กรุณาเขียนรายละเอียดประเด็นร้องเรียน
-              </Form.Control.Feedback>
-            )}
-
-          <Form.Group className="upload-section mt-3">
-
-  <div className="upload-title">
-    <i className="fa-solid fa-image"></i>
-    แนบรูปภาพประกอบ
-    <span>(ถ้ามี)</span>
-  </div>
-
-
-  <Form.Control
-    className="upload-input"
-    type="file"
-    accept="image/*"
-    multiple
-    disabled={Mode === "Show"}
-    onChange={(e)=>{
-      handleImageUpload(e.target.files);
-    }}
-  />
-
-
-  <Form.Text className="upload-text">
-    รองรับไฟล์ JPG, PNG, WEBP (เลือกได้หลายรูป)
-  </Form.Text>
-    <div className="image-preview-list">
-
-{Array.isArray(images) &&
- images.length > 0 &&
- images.map((img,index)=>(
-
-  <div
-    className="image-preview-item"
-    key={index}
-  >
-
-    <img
-      className="image-preview"
-      src={
-        typeof img === "string"
-        ? `/storage/attachfiles/${img}`
-        : URL.createObjectURL(img)
-      }
-      alt=""
-    />
-
-
-    {Mode !== "Show" && (
-
-      <button
-        className="image-delete-btn"
-        type="button"
-        onClick={()=>{
-
-          setImages(prev =>
-            prev.filter((_,i)=>i!==index)
-          );
-
-        }}
-      >
-        ×
-      </button>
-
-    )}
-
-  </div>
-
- ))}
-
-</div>
-
-</Form.Group>
-       
-          </Container>
-        </div>
-      </div>
-
-      <div className="section-card ">
-        <div className="section-header">
-          <GreenCircle />
-          ความคาดหวังของผู้ร้องเรียนที่ต้องการให้โรงพยาบาลตอบสนอง
-        </div>
-
-        <div className="section-body">
-          <Container>
-            <Row>
-              <div
-                className={
-                  missingKeys.some((item) => item.key === "expectation")
-                    ? "AreaBOX SETERRORBOX"
-                    : "AreaBOX"
-                }
-              >
-                <TextField
-                  id="expectation"
-                  label="เขียนรายละเอียด"
-                  variant="standard"
-                  multiline
-                  rows={5}
-                  fullWidth
-                  disabled={Mode === "Show"}
-                  value={data?.expectation || ""}
-                  onChange={(e) => setDataFunction(e, "expectation")}
-                />
-              </div>
-            </Row>
-          </Container>
-        </div>
-      </div>
-
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          ระดับความรุนแรง
-          {selectedSeverity && (
-            <span
-              className="required-badge"
-              style={{
-                marginLeft: 8,
-                color: selectedSeverity.color,
-                backgroundColor: selectedSeverity.bg,
-                padding: "2px 8px",
-                borderRadius: 6,
-                fontWeight: 600,
-              }}
-            >
-              {selectedSeverity.label}
+            <span className="form-subtitle-text">
+              สรุปสาระ / ประเด็นร้องเรียน{" "}
+              <span className="required-badge">จำเป็น</span>
             </span>
+          </div>
+          <div className="section-body">
+            <div
+              className={
+                missingKeys.some((item) => item.key === "summarize")
+                  ? "AreaBOX SETERRORBOX"
+                  : "AreaBOX"
+              }
+            >
+              <TextField
+                fullWidth
+                ref={(el) => (inputRefs.current.summarize = el)}
+                id="summarize"
+                disabled={Mode === "Show"}
+                placeholder="เขียนรายละเอียด"
+                value={data?.summarize || ""}
+                onChange={(e) => {
+                  setErrors((prev) => ({ ...prev, summarize: false }));
+
+                  setDataFunction(e, "summarize");
+                }}
+                variant="standard"
+                multiline
+                rows={4}
+                sx={{ marginBottom: 1 }}
+                style={{
+                  borderColor: errors.summarize ? "#dc3545" : "",
+                  boxShadow: errors.summarize
+                    ? "0 0 0 0.2rem rgba(220,53,69,.25)"
+                    : "",
+                  boxShadow: errors.summarize
+                    ? "0 0 0 0.2rem rgba(220,53,69,.25)"
+                    : "",
+                }}
+              />
+            </div>
+          </div>
+          {errors.summarize && (
+            <Form.Control.Feedback
+              type="invalid"
+              style={{ display: "flex", alignItems: "center", gap: 4 }}
+            >
+              <ErrorOutlineIcon fontSize="small" />
+              กรุณาเขียนรายละเอียดประเด็นร้องเรียน
+            </Form.Control.Feedback>
           )}
         </div>
 
+        <div className="form-subsection">
+          <div className="form-subtitle">
+            <span className="form-subtitle-number">02</span>
+
+            <span className="form-subtitle-text">
+              ความคาดหวังของผู้ร้องเรียนที่ต้องการให้โรงพยาบาลตอบสนอง
+            </span>
+          </div>
+          <div className="section-body">
+            <div
+              className={
+                missingKeys.some((item) => item.key === "expectation")
+                  ? "AreaBOX SETERRORBOX"
+                  : "AreaBOX"
+              }
+            >
+              <TextField
+                id="expectation"
+                placeholder="เขียนรายละเอียด"
+                variant="standard"
+                multiline
+                rows={5}
+                fullWidth
+                disabled={Mode === "Show"}
+                value={data?.expectation || ""}
+                onChange={(e) => setDataFunction(e, "expectation")}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="section-card risk-type-section">
+        <div className="section-header">
+          <div className="section-number">06</div>
+
+          <div className="section-header-content">
+            <div className="section-title">ระดับความรุนแรง</div>
+            <div className="section-description">
+              เลือกประเภทความเสี่ยงที่เกี่ยวข้อง สามารถเลือกได้ทั้ง 2 ประเภท
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="risk-detail-button"
+            onClick={() => setOpenSeverityDetail(true)}
+          >
+            ดูรายละเอียด
+          </button>
+        </div>
+
         <div className="section-body">
-          {options.map((section) => (
-            <div key={section.name} style={{ marginBottom: 24 }}>
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: 600,
-                  marginBottom: 12,
-                  textAlign: "left",
-                }}
-              >
-                {section.group}
+          {/* เลือกประเภทความเสี่ยง */}
+          <div className="risk-type-cards">
+        
+     
+            <p className="form-group-title RiskFieldLabel">ประเภทอุบัติการณ์</p>
+            {[
+              {
+                key: "general",
+                title: "ความเสี่ยงทั่วไป",
+                subtitle: "General Risk",
+                theme: "general",
+              },
+              {
+                key: "clinical",
+                title: "ความเสี่ยงทางคลินิก",
+                subtitle: "Clinical Risk",
+                theme: "clinical",
+              },
+            ].map((type) => {
+              const checked = selectedRiskTypes[type.key];
+
+              return (
+                <label
+                  key={type.key}
+                  className={[
+                    "risk-type-card",
+                    type.theme,
+                    checked ? "active" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  <Checkbox
+                    disabled={Mode === "Show"}
+                    checked={checked}
+                    onChange={(e) =>
+                      handleRiskTypeChange(type.key, e.target.checked)
+                    }
+                  />
+
+                  <span className="risk-type-card-content">
+                    <span className="risk-type-card-title">{type.title}</span>
+                    <span className="risk-type-card-subtitle">
+                      {type.subtitle}
+                    </span>
+                  </span>
+
+                  <span className="risk-type-check">{checked ? "✓" : ""}</span>
+                </label>
+              );
+            })}
+          </div>
+
+        
+          {(selectedRiskTypes.general || selectedRiskTypes.clinical) && (
+            <>
+               <div className="form-group-title mb-2">
+    ระดับความรุนแรงของเหตุการณ์
+  </div>
+
+              <div className="risk-level-tabs">
+                {selectedRiskTypes.general && (
+                  <button
+                    type="button"
+                    className={`risk-level-tab general ${
+                      activeRiskTab === "general" ? "active" : ""
+                    }`}
+                    onClick={() => setActiveRiskTab("general")}
+                  >
+                    <span className="risk-tab-dot" />
+                    <span>
+                      <span className="risk-tab-title">ความเสี่ยงทั่วไป</span>
+                      <span className="risk-tab-subtitle">General Risk</span>
+                    </span>
+                  </button>
+                )}
+
+                {selectedRiskTypes.clinical && (
+                  <button
+                    type="button"
+                    className={`risk-level-tab clinical ${
+                      activeRiskTab === "clinical" ? "active" : ""
+                    }`}
+                    onClick={() => setActiveRiskTab("clinical")}
+                  >
+                    <span className="risk-tab-dot" />
+                    <span>
+                      <span className="risk-tab-title">
+                        ความเสี่ยงทางคลินิก
+                      </span>
+                      <span className="risk-tab-subtitle">Clinical Risk</span>
+                    </span>
+                  </button>
+                )}
               </div>
 
-              <RadioGroup
-                name="suggestion" // ✅ ตัวเดียวเหมือนเดิม
-                value={data?.suggestion || ""}
-                onChange={(e) => setDataFunction(e, "suggestion")}
+              {/* ความเสี่ยงทั่วไป */}
+              {showGeneralRisk && (
+                <div className="risk-level-content general">
+                  <RadioGroup
+                    name="generalRiskLevel"
+                    value={String(data?.generalRiskLevel ?? "")}
+                    onChange={(e) => setDataFunction(e, "generalRiskLevel")}
+                  >
+                    {generalRiskOptions.map((item) => {
+                      const selected =
+                        String(data?.generalRiskLevel ?? "") === item.value;
+
+                      return (
+                        <FormControlLabel
+                          key={item.value}
+                          value={item.value}
+                          disabled={Mode === "Show"}
+                          control={
+                            <Radio
+                              sx={{
+                                color: item.color,
+                                "&.Mui-checked": { color: item.color },
+                              }}
+                            />
+                          }
+                          label={
+                            <div className="risk-option-label">
+                              <span
+                                className="risk-option-code"
+                                style={{
+                                  color: item.color,
+                                  background: item.bg,
+                                }}
+                              >
+                                {item.value}
+                              </span>
+
+                              <span className="risk-option-description">
+                                {item.label}
+                              </span>
+
+                              <span
+                                className="risk-option-badge"
+                                style={{
+                                  color: item.color,
+                                  background: item.bg,
+                                }}
+                              >
+                                {item.aka}
+                              </span>
+                            </div>
+                          }
+                          sx={{
+                            m: 0,
+                            px: 1.5,
+                            py: 0.5,
+                            width: "100%",
+                            borderBottom: "1px solid #edf0f3",
+                            borderRadius: 2,
+                            background: selected ? item.bg : "transparent",
+                            alignItems: "center",
+                          }}
+                        />
+                      );
+                    })}
+                  </RadioGroup>
+                </div>
+              )}
+
+              {/* ความเสี่ยงทางคลินิก */}
+              {showClinicalRisk && (
+                <div className="risk-level-content clinical">
+                  {clinicalRiskOptions.map((section) => (
+                    <div className="clinical-risk-group" key={section.name}>
+                      <div className="clinical-risk-group-title">
+                        {section.group}
+                      </div>
+
+                      <RadioGroup
+                        name="suggestion"
+                        value={data?.suggestion || ""}
+                        onChange={(e) => setDataFunction(e, "suggestion")}
+                      >
+                        {section.items.map((item) => {
+                          const severity = severityLevels.find(
+                            (s) => s.code === item.value,
+                          );
+
+                          const selected = data?.suggestion === item.value;
+
+                          return (
+                            <FormControlLabel
+                              key={item.value}
+                              value={item.value}
+                              disabled={Mode === "Show"}
+                              control={
+                                <Radio
+                                  sx={{
+                                    color: severity?.color || "#9ca3af",
+                                    "&.Mui-checked": {
+                                      color: severity?.color || "#b91c1c",
+                                    },
+                                  }}
+                                />
+                              }
+                              label={
+                                <div className="risk-option-label">
+                                  <span
+                                    className="risk-option-code"
+                                    style={{
+                                      color: severity?.color || "#374151",
+                                      background: severity?.bg || "#f3f4f6",
+                                    }}
+                                  >
+                                    {item.value}
+                                  </span>
+
+                                  <span className="risk-option-description">
+                                    {item.label}
+                                  </span>
+
+                                  {severity && (
+                                    <span
+                                      className="risk-option-badge"
+                                      style={{
+                                        color: severity.color,
+                                        background: severity.bg,
+                                      }}
+                                    >
+                                      {severity.label}
+                                    </span>
+                                  )}
+                                </div>
+                              }
+                              sx={{
+                                m: 0,
+                                px: 1.5,
+                                py: 0.5,
+                                width: "100%",
+                                borderBottom: "1px solid #edf0f3",
+                                borderRadius: 2,
+                                background: selected
+                                  ? severity?.bg || "#f9fafb"
+                                  : "transparent",
+                              }}
+                            />
+                          );
+                        })}
+                      </RadioGroup>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Section: หมวดหมู่ข้อร้องเรียน / ข้อเสนอแนะ */}
+      <div className="section-card">
+        <div className="section-header">
+          <div className="section-number">06</div>
+
+          <div className="section-header-content">
+            <div className="section-title">ประเภทข้อร้องเรียน/ข้อเสนอแนะ</div>
+
+            <div className="section-description">
+              เลือกหมวดหมู่ที่เกี่ยวข้องกับเรื่องร้องเรียน สามารถเลือกได้มากกว่า
+              1 รายการ
+            </div>
+          </div>
+        </div>
+
+        <div className="section-body">
+          <Container>
+            <Row className="g-4">
+              <Col md={4}>
+                <label className="form-label" style={{ fontWeight: 600 }}>
+                  ประเภทข้อร้องเรียน/ข้อเสนอแนะ
+                </label>
+
+                <Form.Select value="complaint" disabled className="form-input">
+                  <option value="complaint">ข้อร้องเรียน/ข้อเสนอแนะ</option>
+                </Form.Select>
+              </Col>
+
+              <Col
+                md={12}
+                style={{
+                  padding: "16px",
+                  boxSizing: "border-box",
+                  background: "#fff",
+                  border: "1px solid #e7e6dc",
+                  borderRadius: "13px",
+                  boxShadow: "0 2px 8px rgba(38, 44, 34, 0.025)",
+                }}
               >
-                {section.items.map((item) => {
-                  const selected = data?.suggestion === item.value;
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    marginBottom: 16,
+                    width: "100%",
+                  }}
+                >
+                  {/* ฝั่งซ้าย */}
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      color: "#374151",
+                    }}
+                  >
+                    รายละเอียดหมวดหมู่
+                  </span>
 
-                  const severity = severityLevels.find(
-                    (s) => s.code === item.value,
-                  );
+                  <Box
+                    sx={{
+                      flexShrink: 0,
+                      px: 1.25,
+                      py: 0.65,
+                      borderRadius: "8px",
+                      backgroundColor: "#EEF5EF",
+                      color: "#347653",
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    เลือกแล้ว {selectedCategoryCount}
+                  </Box>
+                </div>
+                <FormGroup
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      md: "repeat(2, minmax(0, 1fr))",
+                    },
+                    gap: 1,
+                  }}
+                >
+                  {complaintCategoryOptions.map((item) => {
+                    const selectedCategories = Array.isArray(
+                      data?.complaintCategories,
+                    )
+                      ? data.complaintCategories
+                      : [];
 
-                  return (
-                    <label
-                      key={item.value}
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 12,
-                        padding: "14px 16px",
-                        marginBottom: 10,
-                        borderRadius: 12,
-                        alignItems: "center",
-                        border: selected
-                          ? `2px solid ${severity?.color}`
-                          : "1px solid #e5e7eb",
+                    const checked = selectedCategories.includes(item.value);
 
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      <Radio
-                        value={item.value}
+                    return (
+                      <FormControlLabel
+                        key={item.value}
+                        control={
+                          <Checkbox
+                            checked={checked}
+                            disabled={Mode === "Show"}
+                            onChange={(e) => {
+                              const nextCategories = e.target.checked
+                                ? [
+                                    ...new Set([
+                                      ...selectedCategories,
+                                      item.value,
+                                    ]),
+                                  ]
+                                : selectedCategories.filter(
+                                    (value) => value !== item.value,
+                                  );
+
+                              setDataFunction(
+                                {
+                                  target: {
+                                    value: nextCategories,
+                                  },
+                                },
+                                "complaintCategories",
+                              );
+                            }}
+                          />
+                        }
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "flex-start",
+                              gap: 0.3,
+                              padding: "9px 10px",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                marginBottom: "3px",
+                                color: "#98752f",
+                                fontSize: "10px",
+                                fontWeight: "750",
+                                lineHeight: "1.4",
+                              }}
+                            >
+                              {item.value}
+                            </Typography>
+
+                            <Typography
+                              sx={{
+                                color: "#333a32",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                                lineHeight: "1.6",
+                                overflowWrap: "anywhere",
+                              }}
+                            >
+                              {item.label}
+                            </Typography>
+                          </Box>
+                        }
                         sx={{
-                          color: "#9ca3af", // ตอนยังไม่เลือก
-                          "&.Mui-checked": {
-                            color: severity?.color, // วงนอก
-                          },
-                          "&.Mui-checked .MuiSvgIcon-root": {
-                            fill: severity?.color, // 👈 บังคับวงใน (จุดกลาง)
+                          m: 0,
+                          px: 1.5,
+                          py: 0.5,
+                          border: "1px solid #e5e7eb",
+                          borderRadius: 2,
+                          backgroundColor: checked ? "#fff8e7" : "#ffffff",
+                          "& .MuiFormControlLabel-label": {
+                            fontSize: "0.95rem",
                           },
                         }}
                       />
-                      <div style={{ lineHeight: 1.5 }}>{item.label}</div>
-                      <span
-                        className="required-badge"
-                        style={{
-                          marginLeft: 8,
-                          color: severity.color,
-                          backgroundColor: severity?.bg,
-                          padding: "2px 8px",
-                          borderRadius: 6,
-                          fontWeight: 600,
-                        }}
-                      >
-                        {severity.label}
-                      </span>
-                    </label>
-                  );
-                })}
-              </RadioGroup>
-            </div>
-          ))}
+                    );
+                  })}
+                </FormGroup>
+              </Col>
+            </Row>
+          </Container>
         </div>
       </div>
+
       <div className="section-card">
         <div className="section-header">
-          <GreenCircle />
-          บันทึกการตัดสินใจของผู้รับข้อร้องเรียนในการแก้ไขปัญหาเฉพาะหน้า
+          <div className="section-number">07</div>
+
+          <div className="section-header-content">
+            <div className="section-title">การจัดการและแก้ไขปัญหา</div>
+
+            <div className="section-description">
+              บันทึกการดำเนินการแก้ไขปัญหา ผลสัมฤทธิ์
+              และแนวทางป้องกันการเกิดปัญหาซ้ำ
+            </div>
+          </div>
         </div>
 
-        <div className="section-body">
+        <div className="form-subsection">
+          <div className="form-subtitle">
+            <span className="form-subtitle-number">01</span>{" "}
+            บันทึกการตัดสินใจของผู้รับข้อร้องเรียนในการแก้ไขปัญหาเฉพาะหน้า
+          </div>
+
           <Container>
             <Row>
               <div
@@ -1258,10 +1623,10 @@ const GeneralInfo = ({
               >
                 <TextField
                   id="decision"
-                  label="เขียนรายละเอียด"
+                  placeholder="เขียนรายละเอียด"
                   variant="standard"
                   multiline
-                  rows={5}
+                  rows={4}
                   fullWidth
                   disabled={Mode === "Show"}
                   value={data?.decision || ""}
@@ -1271,16 +1636,13 @@ const GeneralInfo = ({
             </Row>
           </Container>
         </div>
-      </div>
-
-      <div className="section-card">
-        <div className="section-header">
-          <GreenCircle />
-          ระดับของผลสัมฤทธิ์ในการแก้ปัญหาเฉพาะหน้า
-        </div>
-
-        <div className="section-body">
-          <Container>
+        <div className="form-subsection">
+          {" "}
+          <div className="form-subtitle">
+            <span className="form-subtitle-number">02</span>{" "}
+            ระดับของผลสัมฤทธิ์ในการแก้ปัญหาเฉพาะหน้า
+          </div>
+          <Container className="my-3">
             <Row>
               <RadioGroup
                 row
@@ -1310,14 +1672,13 @@ const GeneralInfo = ({
             </Row>
           </Container>
         </div>
-      </div>
-      <div className="section-card ">
-        <div className="section-header">
-          <GreenCircle />
-          ข้อเสนอแนะเพื่อป้องกันและแก้ไขปัญหาของผู้รับเรื่องร้องเรียน
-        </div>
 
-        <div className="section-body">
+        <div className="form-subsection">
+          {" "}
+          <div className="form-subtitle">
+            <span className="form-subtitle-number">03</span>{" "}
+            ข้อเสนอแนะเพื่อป้องกันและแก้ไขปัญหาของผู้รับเรื่องร้องเรียน
+          </div>
           <Container>
             <Row>
               <div
@@ -1329,10 +1690,10 @@ const GeneralInfo = ({
               >
                 <TextField
                   id="prevent"
-                  label="เขียนรายละเอียด"
+                  placeholder="เขียนรายละเอียด"
                   variant="standard"
                   multiline
-                  rows={5}
+                  rows={4}
                   fullWidth
                   disabled={Mode === "Show"}
                   value={data?.prevent || ""}
@@ -1343,6 +1704,369 @@ const GeneralInfo = ({
           </Container>
         </div>
       </div>
+
+      <div className="section-card">
+        <div className="section-header">
+          <div className="section-number">08</div>
+
+          <div className="section-header-content">
+            <div className="section-title">อัปโหลดไฟล์ (*ถ้ามี)</div>
+
+            <div className="section-description">
+              แนบหลักฐานประกอบเรื่องร้องเรียนและส่งออกข้อมูลรายงานในรูปแบบ Excel
+            </div>
+          </div>
+        </div>
+
+        <div className="section-body">
+          <div className="form-subsection">
+            <div className="FileSection">
+              <div className="FileSectionHeader">
+                <div className="FileSectionTitle">รูปภาพประกอบ</div>
+              </div>
+
+              {Mode !== "Show" && (
+                <>
+                  <input
+                    type="file"
+                    id="complaint-images"
+                    accept="image/png, image/jpeg, image/webp"
+                    multiple
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      handleImageUpload(e.target.files);
+                    }}
+                    disabled={Mode === "Show"}
+                  />
+
+                  <label
+                    htmlFor="complaint-images"
+                    className="file-input-label"
+                  >
+                    <span className="file-selected">
+                      <i className="fa-solid fa-image"></i>
+                      <span>อัปโหลดรูป</span>
+                    </span>
+
+                    <span className="text">เลือกรูปภาพที่ต้องการแนบ</span>
+                  </label>
+
+                  <span className="remark">
+                    รองรับไฟล์ JPG, PNG, WEBP และสามารถเลือกได้หลายรูป
+                  </span>
+                </>
+              )}
+
+              {/* IMAGE PREVIEW */}
+              {/* IMAGE PREVIEW */}
+              {/* IMAGE PREVIEW */}
+              <div className="image-preview-list">
+                {Array.isArray(images) &&
+                  images.length > 0 &&
+                  images.map((img, index) => {
+                    const filename = typeof img === "string" ? img : img?.name;
+
+                    // ถ้าไม่ใช่รูป ไม่ต้องแสดงตรงนี้
+                    if (!isImageFile(filename)) {
+                      return null;
+                    }
+
+                    return (
+                      <div className="image-preview-item" key={index}>
+                        <img
+                          className="image-preview"
+                          src={
+                            typeof img === "string"
+                              ? `/storage/attachfiles/${img}`
+                              : URL.createObjectURL(img)
+                          }
+                          alt=""
+                          onClick={() => {
+                            setSelectedImage(
+                              typeof img === "string"
+                                ? `/storage/attachfiles/${img}`
+                                : URL.createObjectURL(img),
+                            );
+                          }}
+                        />
+
+                        {Mode !== "Show" && (
+                          <button
+                            className="image-delete-btn"
+                            type="button"
+                            onClick={() => {
+                              setImages((prev) =>
+                                prev.filter((_, i) => i !== index),
+                              );
+                            }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+            <div className="FileSection document-upload-section">
+              <div className="FileSectionHeader">
+                <div className="FileSectionTitle">เอกสารประกอบ</div>
+
+                <div className="FileSectionHint">WORD / EXCEL / POWERPOINT</div>
+              </div>
+
+              {Mode !== "Show" && (
+                <>
+                  <input
+                    type="file"
+                    id="complaint-documents"
+                    accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                    multiple
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      // ใส่ handler สำหรับเอกสารของคุณตรงนี้
+                      handleDocumentUpload(e.target.files);
+                    }}
+                    disabled={Mode === "Show"}
+                  />
+
+                  <label
+                    htmlFor="complaint-documents"
+                    className="file-input-label document-upload-label"
+                  >
+                    <span className="file-selected document-file-selected">
+                      <i className="fa-solid fa-file-lines"></i>
+
+                      <span>อัปโหลดเอกสาร</span>
+                    </span>
+
+                    <span className="text">
+                      เลือกไฟล์ Word, Excel หรือ PowerPoint
+                    </span>
+                  </label>
+
+                  <span className="remark">
+                    รองรับไฟล์ .doc, .docx, .xls, .xlsx, .ppt และ .pptx
+                  </span>
+                </>
+              )}
+              {documentFiles.length > 0 && (
+                <div className="document-file-list">
+                  {documentFiles.map((file, index) => (
+                    <div
+                      className="document-file-item"
+                      key={`${file.name}-${index}`}
+                    >
+                      <div className="document-file-icon">
+                        <i className={`bi ${getFileIcon(file.name)}`}></i>
+                      </div>
+
+                      <div className="document-file-info">
+                        <div className="document-file-name">{file.name}</div>
+
+                        <div className="document-file-size">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </div>
+                      </div>
+
+                      {Mode !== "Show" && (
+                        <button
+                          type="button"
+                          className="document-file-delete"
+                          onClick={() => {
+                            setDocumentFiles((prev) =>
+                              prev.filter((_, i) => i !== index),
+                            );
+                          }}
+                        >
+                          <i className="bi bi-x-lg"></i>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* เอกสารเดิมจาก Database */}
+              <div className="document-file-list">
+                {Array.isArray(images) &&
+                  images.map((file, index) => {
+                    const filename =
+                      typeof file === "string" ? file : file?.name;
+
+                    // ข้ามรูปภาพ
+                    if (!filename || isImageFile(filename)) {
+                      return null;
+                    }
+
+                    const fileUrl = `/storage/attachfiles/${filename}`;
+
+                    return (
+                      <div className="document-file-item" key={`old-${index}`}>
+                        {/* Icon */}
+                        <div className="document-file-icon">
+                          <i className={`bi ${getFileIcon(filename)}`}></i>
+                        </div>
+
+                        {/* ชื่อไฟล์ */}
+                        <div className="document-file-info">
+                          <div className="document-file-name">{filename}</div>
+
+                          <div className="document-file-size">เอกสารแนบ</div>
+                        </div>
+
+                        {/* ปุ่มจัดการไฟล์ */}
+                        <div className="document-file-actions">
+                          {/* เปิดไฟล์ */}
+                          <a
+                            href={fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="document-file-open"
+                            title="เปิดไฟล์"
+                          >
+                            <i className="bi bi-box-arrow-up-right"></i>
+                          </a>
+
+                          {/* ดาวน์โหลด */}
+                          <a
+                            href={fileUrl}
+                            download={filename}
+                            className="document-file-download"
+                            title="ดาวน์โหลด"
+                          >
+                            <i className="bi bi-download"></i>
+                          </a>
+
+                          {/* ลบ */}
+                          {Mode !== "Show" && (
+                            <button
+                              type="button"
+                              className="document-file-delete"
+                              title="ลบไฟล์"
+                              onClick={() => {
+                                setImages((prev) =>
+                                  prev.filter((_, i) => i !== index),
+                                );
+                              }}
+                            >
+                              <i className="bi bi-x-lg"></i>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {selectedImage && (
+        <div
+          className="image-dialog-overlay"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="image-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="image-dialog-header">
+              <div className="image-dialog-title">
+                <i className="bi bi-image"></i>
+                ตัวอย่างรูปภาพ
+              </div>
+
+              <button
+                type="button"
+                className="image-dialog-close"
+                onClick={() => setSelectedImage(null)}
+              >
+                <i className="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <div className="image-dialog-body">
+              <img
+                src={selectedImage}
+                alt="Preview"
+                className="image-dialog-image"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Dialog
+        open={openSeverityDetail}
+        onClose={() => setOpenSeverityDetail(false)}
+        maxWidth={false}
+        PaperProps={{
+          style: {
+            margin: 16,
+            borderRadius: 16,
+            overflow: "hidden",
+            background: "#fff",
+            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.25)",
+          },
+        }}
+      >
+        <div
+          style={{
+            position: "relative",
+            display: "inline-block",
+            lineHeight: 0,
+            background: "#fff",
+          }}
+        >
+          {/* รูป */}
+          <img
+            src={severityA}
+            alt="รายละเอียดระดับความรุนแรง"
+            style={{
+              display: "block",
+              maxWidth: "90vw",
+              maxHeight: "85vh",
+              width: "auto",
+              height: "auto",
+              objectFit: "contain",
+            }}
+          />
+
+          {/* ปุ่มปิด */}
+          <button
+            type="button"
+            onClick={() => setOpenSeverityDetail(false)}
+            style={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              width: 38,
+              height: 38,
+              border: "none",
+              borderRadius: "50%",
+              background: "rgba(255, 255, 255, 0.95)",
+              color: "#475569",
+              fontSize: 22,
+              fontWeight: 500,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 3px 12px rgba(0, 0, 0, 0.18)",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#f1f5f9";
+              e.currentTarget.style.color = "#dc2626";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.95)";
+              e.currentTarget.style.color = "#475569";
+            }}
+          >
+            ปิด
+          </button>
+        </div>
+      </Dialog>
     </>
   );
 };

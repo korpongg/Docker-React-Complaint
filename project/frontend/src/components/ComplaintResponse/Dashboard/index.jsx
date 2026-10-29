@@ -74,42 +74,40 @@ const Dashboard = () => {
     connectWebSocket();
   }, []);
 
-  useEffect(() => {
-  
-    if (!userData?.level) return;
-console.log(userData)
- requestData("DATA3", {
+useEffect(() => {
+  if (!userData?.level) return;
 
-  excludeStatus:"3",
 
-  risks:["1","2","3"],
-  dep: userData.dep?.trim(),
-userDepID: userData?.DepID,
-  userAffID: userData?.AffID,
-  userLevel: userData?.level,
-  //depId:userData.DepID,
 
+  requestData("DATA3", {
+    excludeStatus: "3",
+    risks: ["1", "2", "3", "4"],
+    dep: userData?.dep?.trim(),
+    userDepID: userData?.DepID,
+    userAffID: userData?.AffID,
+    userLevel: userData?.level,
+
+    reportNo,
+    hn,
+    startDate,
+    endDate,
+    patientType,
+    severity,
+    status: statusfilter,
+  });
+}, [
+  userData?.level,
+  userData?.dep,
+  userData?.DepID,
+  userData?.AffID,
   reportNo,
   hn,
   startDate,
   endDate,
   patientType,
   severity,
-  status:statusfilter
-
-});
-  },[
-// userData?.DepID,
-userData.dep,
- reportNo,
- hn,
- startDate,
- endDate,
- patientType,
- severity,
- statusfilter
+  statusfilter,
 ]);
-
  const canReply = (jobtitle) => {
   if (!jobtitle) return false;
 
@@ -399,7 +397,15 @@ userData.dep,
                   onChangeDocNo={(e) => setReportNo(e.target.value)}
                   onChangeHN={(e) => setHn(e.target.value)}
                   onChangeDate={(e) => setStartDate(e.target.value)}
-                   onChangeStatus={(e) => setStatus(e.target.value)}
+                                  onChangeStatus={(e) => {
+  const value = e.target.value;
+
+  setStatus(
+    value === "__NULL__"
+      ? null
+      : value
+  );
+}}
                   onChangeSeverity={(e) => setSeverity(e.target.value)}
                   onChangePatientType={(e) => setPatientType(e.target.value)}
                 />
