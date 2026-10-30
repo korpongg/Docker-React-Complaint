@@ -22,7 +22,7 @@ export const formatThaiDate = (date) => {
 
   const day = d.getDate();
   const month = thaiMonths[d.getMonth()];
-  const year = d.getFullYear() + 543;
+  const year = d.getFullYear() ;
 
   return `${day} ${month} ${year}`;
 };

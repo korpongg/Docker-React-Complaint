@@ -86,7 +86,7 @@ useEffect(() => {
     userDepID: userData?.DepID,
     userAffID: userData?.AffID,
     userLevel: userData?.level,
-
+    userID:userData?.userid,
     reportNo,
     hn,
     startDate,
@@ -100,6 +100,7 @@ useEffect(() => {
   userData?.dep,
   userData?.DepID,
   userData?.AffID,
+  userData?.userid,
   reportNo,
   hn,
   startDate,
@@ -124,7 +125,7 @@ useEffect(() => {
 };
  const isManager = canReply(userData?.jobtitle);
 
-
+const isDirector = Number(userData?.level) === 4;
   useEffect(() => {
     if (!dataCenter3) return;
     setDashboard(dataCenter3);
@@ -437,6 +438,7 @@ useEffect(() => {
                 handleDeleteClick={handleDeleteClick}
                 loading={loading}
                 isManager={isManager}
+                isDirector={isDirector}
               />
             </Paper>
           </Stack>

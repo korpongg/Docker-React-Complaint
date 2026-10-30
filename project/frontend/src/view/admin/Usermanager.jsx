@@ -19,7 +19,7 @@ import KeyIcon from "@mui/icons-material/KeyRounded";
 import SaveIcon from "@mui/icons-material/Save";
 import InfoIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
-
+import LinearProgress from "@mui/material/LinearProgress";
 import {
   DataGrid,
   GridToolbarContainer,
@@ -169,6 +169,10 @@ const GlobalStyle = createGlobalStyle`
     background: #2563eb;
   }
 
+    .PermissionDot.purple {
+    background: #b625ebff;
+  }
+
   /* =========================
      Edit Modal
   ========================= */
@@ -202,11 +206,17 @@ export default function UserManager() {
   /* =========================================================
      State
   ========================================================= */
+const [rows, setRows] = useState([]);
 
-  const [rows, setRows] = useState([]);
+const [loading, setLoading] = useState(true);
 
-  const [loading, setLoading] = useState(true);
+// Bulk Reset Password
+const [bulkResetLoading, setBulkResetLoading] = useState(false);
 
+const [bulkResetProgress, setBulkResetProgress] = useState({
+  current: 0,
+  total: 0,
+});
   /* Permission Dialog */
 
   const [showRoleInfo, setShowRoleInfo] = useState(false);
@@ -312,6 +322,17 @@ export default function UserManager() {
           color: "#2563eb",
           background: "#eff6ff",
         };
+
+
+      case "4":
+        return {
+          label: "Viewer",
+          fullLabel: "Level 4 — Viewer ",
+          description: "ดูได้อย่างเดียว",
+          color: "#5d1dbeff",
+          background: "#feefffff",
+        };
+
 
       default:
         return {
@@ -493,6 +514,93 @@ export default function UserManager() {
 
     setDialogReset(false);
   };
+
+  /* =========================================================
+   Bulk Reset Password — All Users
+========================================================= */
+
+const handleResetAllUsers = async () => {
+  // ดึง userid จาก User ทั้งหมดที่โหลดมา
+  const userids = [
+    ...new Set(
+      rows
+        .map((row) => String(row.userid || "").trim())
+        .filter(Boolean)
+    ),
+  ];
+
+  if (userids.length === 0) {
+    setError(true);
+    setSuccessMessage("ไม่พบข้อมูลผู้ใช้งาน");
+    return;
+  }
+
+  const total = userids.length;
+  const totalBatches = Math.ceil(total / 10);
+
+  const confirmed = window.confirm(
+    `ยืนยัน Reset Password ผู้ใช้งานทั้งหมด?\n\n` +
+    `จำนวน ${total} คน\n` +
+    `แบ่งการทำงาน ${totalBatches} รอบ (รอบละไม่เกิน 10 คน)\n\n` +
+    `Password ใหม่ของแต่ละคนจะเป็น userid\n\n` +
+    `คุณต้องการดำเนินการต่อหรือไม่?`
+  );
+
+  if (!confirmed) return;
+
+  setBulkResetLoading(true);
+  setBulkResetProgress({
+    current: 0,
+    total,
+  });
+
+  let successCount = 0;
+  let failedUserIds = [];
+
+  try {
+    for (let i = 0; i < userids.length; i += 10) {
+      const batch = userids.slice(i, i + 10);
+
+      try {
+        const response = await axios.post(
+          `${apiUrl}/users/resetpassword/bulk`,
+          {
+            userids: batch,
+          },
+          config
+        );
+
+        successCount += response.data.success || batch.length;
+
+      } catch (batchError) {
+        console.error("Bulk Reset Error:", batchError);
+        failedUserIds.push(...batch);
+      }
+
+      setBulkResetProgress({
+        current: Math.min(i + batch.length, total),
+        total,
+      });
+    }
+
+    if (failedUserIds.length === 0) {
+      setError(false);
+      setSuccessMessage(
+        `Reset Password สำเร็จทั้งหมด ${successCount} คน`
+      );
+    } else {
+      setError(true);
+      setSuccessMessage(
+        `สำเร็จ ${successCount} คน / ไม่สำเร็จ ${failedUserIds.length} คน`
+      );
+
+      console.error("User IDs ที่ Reset ไม่สำเร็จ:", failedUserIds);
+    }
+
+  } finally {
+    setBulkResetLoading(false);
+  }
+};
   const handleDeleteClick = (id, data) => async () => {
     const confirmDelete = window.confirm(
       "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้รายนี้?"
@@ -751,6 +859,29 @@ export default function UserManager() {
 
               {/* Permission Button */}
 
+
+  <Button
+    variant="contained"
+    startIcon={<KeyIcon />}
+    onClick={handleResetAllUsers}
+    disabled={bulkResetLoading || rows.length === 0}
+    sx={{
+      borderRadius: "10px",
+      textTransform: "none",
+      fontWeight: 700,
+      whiteSpace: "nowrap",
+      background: "linear-gradient(135deg, #b45309, #f59e0b)",
+      boxShadow: "0 4px 12px rgba(217,119,6,0.20)",
+      "&:hover": {
+        background: "linear-gradient(135deg, #92400e, #d97706)",
+      },
+      display:'none'
+    }}
+  >
+    {bulkResetLoading
+      ? "กำลัง Reset..."
+      : `Reset Password ทั้งหมด (${rows.length})`}
+  </Button>
               <Button
                 variant="contained"
                 startIcon={<InfoIcon />}
@@ -777,6 +908,41 @@ export default function UserManager() {
               </Button>
             </Box>
 
+{/* Bulk Reset Progress */}
+
+{bulkResetLoading && (
+  <Box sx={{ px: 1, mb: 2 }}>
+    <Typography
+      sx={{
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#d97706",
+        mb: 1,
+      }}
+    >
+      กำลัง Reset Password{" "}
+      {bulkResetProgress.current} / {bulkResetProgress.total} คน
+    </Typography>
+
+    <LinearProgress
+      variant="determinate"
+      value={
+        bulkResetProgress.total > 0
+          ? (bulkResetProgress.current / bulkResetProgress.total) * 100
+          : 0
+      }
+      sx={{
+        height: 8,
+        borderRadius: 10,
+        backgroundColor: "#fef3c7",
+        "& .MuiLinearProgress-bar": {
+          backgroundColor: "#d97706",
+          borderRadius: 10,
+        },
+      }}
+    />
+  </Box>
+)}
             {/* =================================================
                 DataGrid
             ================================================= */}
@@ -1115,6 +1281,32 @@ export default function UserManager() {
                 }}
               >
                 เห็นข้อมูลทั้งหมด
+              </Typography>
+            </Box>
+          </Box>
+        </MenuItem>
+
+
+        <MenuItem value="4">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <span className="PermissionDot purple" />
+
+            <Box>
+              <b>Level 4 — Viewer</b>
+
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  color: "#81648bff",
+                }}
+              >
+                ดูได้อย่างเดียว
               </Typography>
             </Box>
           </Box>

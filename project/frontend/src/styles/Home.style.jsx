@@ -260,18 +260,18 @@ export const HomeBox = styled(Box)`
      MENU GRID
   ========================================================= */
 
-  .menu-grid {
+.menu-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
 
-    width: 100%;
-
-    display: grid;
-
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-
-    gap: 24px;
+  /* ถ้าเหลือเมนูเดียว ให้อยู่ตรงกลาง */
+  &:has(> :only-child) {
+    grid-template-columns: minmax(0, 560px);
+    justify-content: center;
   }
-
+}
 
   /* =========================================================
      MENU ITEM

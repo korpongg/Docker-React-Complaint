@@ -383,6 +383,7 @@ const getCenter3 = async (payload = {}) => {
       // =========================
       // USER PERMISSION
       // =========================
+      userID,
       userDepID,
       userAffID,
       userLevel,
@@ -712,6 +713,42 @@ if (status === "__NULL__" || status === null) {
   `;
 
   replacements.status = statusValue;
+}
+
+
+
+// LEVEL 4 : DIRECTOR / VIEWER
+else if (Number(userLevel) === 4) {
+
+  const directorID = String(userID);
+
+  // ผอ. ที่เห็นทุกแผนก
+  const allDepartmentDirectors = [
+    "690413",
+    "651038",
+  ];
+
+  if (allDepartmentDirectors.includes(directorID)) {
+
+    // เห็นทุกแผนก ไม่ต้องกรอง
+
+  } else {
+
+    // ผอ. อีก 4 คน เห็นตาม Affiliation ตัวเอง
+    whereClause += `
+      AND EXISTS (
+        SELECT 1
+        FROM OPENJSON(com1.deptrelate) j
+        INNER JOIN ${DB_NAME}.dbo.department d
+          ON d.id = TRY_CAST(j.value AS INT)
+        WHERE d.relateid = :userAffID
+      )
+    `;
+
+    replacements.userAffID = Number(userAffID);
+
+  }
+
 }
     // =====================================================
     // SQL
@@ -1093,11 +1130,14 @@ const getMenuCount = async (payload = {}) => {
   try {
     const {
       createby,
+      userID,
       dep,
       userDepID,
       userAffID,
       userLevel,
     } = payload;
+
+    const level = Number(userLevel);
 
     /* =========================================================
        USER PERMISSION DATA
@@ -1114,48 +1154,34 @@ const getMenuCount = async (payload = {}) => {
       dep.trim() !== "" &&
       dep.trim() !== "-";
 
-
     const replacements = {
       createby,
-      userAffID: Number(userAffID),
     };
 
-
     /* =========================================================
-       LEVEL 1 PERMISSION
-       ใช้แบบเดียวกับ getCenter3
+       COMMON PERMISSION
+       ใช้ร่วมกัน ADMIN / RESPONSE / SUMMARY
     ========================================================= */
 
-    let responsePermission = "";
+    let permissionSQL = "";
 
-    if (Number(userLevel) === 1) {
-
-      /*
-      ---------------------------------------------------------
-      มีทั้ง DepID + Department Name
-      ใช้ OR
-      ---------------------------------------------------------
-      */
+    // LEVEL 1 : เห็นเฉพาะแผนกตัวเอง
+    if (level === 1) {
 
       if (hasDepID && hasDepName) {
 
-        responsePermission = `
+        permissionSQL = `
           AND (
             EXISTS (
               SELECT 1
               FROM OPENJSON(com1.deptrelate) j
               WHERE TRY_CAST(j.value AS INT) = :userDepID
             )
-
-            OR
-
-            EXISTS (
+            OR EXISTS (
               SELECT 1
               FROM OPENJSON(com1.deptrelate) j
-
               INNER JOIN ${DB_NAME}.dbo.department d2
                 ON d2.id = TRY_CAST(j.value AS INT)
-
               WHERE d2.name LIKE :dep
             )
           )
@@ -1163,18 +1189,10 @@ const getMenuCount = async (payload = {}) => {
 
         replacements.userDepID = Number(userDepID);
         replacements.dep = `%${dep.trim()}%`;
-      }
 
+      } else if (hasDepID) {
 
-      /*
-      ---------------------------------------------------------
-      มีเฉพาะ DepID
-      ---------------------------------------------------------
-      */
-
-      else if (hasDepID) {
-
-        responsePermission = `
+        permissionSQL = `
           AND EXISTS (
             SELECT 1
             FROM OPENJSON(com1.deptrelate) j
@@ -1183,82 +1201,126 @@ const getMenuCount = async (payload = {}) => {
         `;
 
         replacements.userDepID = Number(userDepID);
-      }
 
+      } else if (hasDepName) {
 
-      /*
-      ---------------------------------------------------------
-      มีเฉพาะ Department Name
-      ---------------------------------------------------------
-      */
-
-      else if (hasDepName) {
-
-        responsePermission = `
+        permissionSQL = `
           AND EXISTS (
             SELECT 1
             FROM OPENJSON(com1.deptrelate) j
-
             INNER JOIN ${DB_NAME}.dbo.department d2
               ON d2.id = TRY_CAST(j.value AS INT)
-
             WHERE d2.name LIKE :dep
           )
         `;
 
         replacements.dep = `%${dep.trim()}%`;
+
+      } else {
+
+        permissionSQL = ` AND 1 = 0 `;
+
       }
+    }
 
+    // LEVEL 2 : เห็นทุกแผนกใน Affiliation ตัวเอง
+    else if (level === 2) {
 
-      /*
-      ---------------------------------------------------------
-      ไม่มีทั้ง DepID และ Department Name
-      ป้องกัน Level 1 เห็นข้อมูลทั้งหมด
-      ---------------------------------------------------------
-      */
+      if (
+        userAffID === null ||
+        userAffID === undefined ||
+        userAffID === "" ||
+        !Number.isFinite(Number(userAffID))
+      ) {
 
-      else {
+        permissionSQL = ` AND 1 = 0 `;
 
-        responsePermission = `
-          AND 1 = 0
+      } else {
+
+        permissionSQL = `
+          AND EXISTS (
+            SELECT 1
+            FROM OPENJSON(com1.deptrelate) j
+            INNER JOIN ${DB_NAME}.dbo.department d2
+              ON d2.id = TRY_CAST(j.value AS INT)
+            WHERE d2.relateid = :userAffID
+          )
         `;
+
+        replacements.userAffID = Number(userAffID);
+
       }
     }
 
+    // LEVEL 3 : เห็นทั้งหมด
+    else if (level === 3) {
 
-    /* =========================================================
-       LEVEL 2
-       เห็นทุก Department ภายใต้ Affiliation ตัวเอง
-    ========================================================= */
+      permissionSQL = "";
 
-    else if (Number(userLevel) === 2) {
+    }
 
-      responsePermission = `
-        AND EXISTS (
-          SELECT 1
-          FROM OPENJSON(com1.deptrelate) j
+    // LEVEL 4 : DIRECTOR / VIEWER
+    else if (level === 4) {
 
-          INNER JOIN ${DB_NAME}.dbo.department d2
-            ON d2.id = TRY_CAST(j.value AS INT)
+      const allDepartmentDirectors = [
+        "690413",
+        "651038",
+      ];
 
-          WHERE d2.relateid = :userAffID
-        )
-      `;
+      // ผู้อำนวยการที่เห็นทุกแผนก
+      if (allDepartmentDirectors.includes(String(userID))) {
+
+        permissionSQL = "";
+
+      } else {
+
+        // ผู้อำนวยการที่เห็นเฉพาะ Affiliation ตัวเอง
+        if (
+          userAffID === null ||
+          userAffID === undefined ||
+          userAffID === "" ||
+          !Number.isFinite(Number(userAffID))
+        ) {
+
+          permissionSQL = ` AND 1 = 0 `;
+
+        } else {
+
+          permissionSQL = `
+            AND EXISTS (
+              SELECT 1
+              FROM OPENJSON(com1.deptrelate) j
+              INNER JOIN ${DB_NAME}.dbo.department d2
+                ON d2.id = TRY_CAST(j.value AS INT)
+              WHERE d2.relateid = :userAffID
+            )
+          `;
+
+          replacements.userAffID = Number(userAffID);
+
+        }
+      }
+
+    }
+
+    // LEVEL อื่น ๆ : ไม่อนุญาต
+    else {
+
+      permissionSQL = ` AND 1 = 0 `;
+
     }
 
 
     /* =========================================================
-       LEVEL 3+
-       เห็นทั้งหมด
+       SQL
     ========================================================= */
-
 
     const sql = `
       SELECT
 
-
       /* =========================================
          MY COMPLAINT
+         คงเงื่อนไขเดิม
       ========================================= */
 
       (
@@ -1290,6 +1352,7 @@ const getMenuCount = async (payload = {}) => {
 
       /* =========================================
          ADMIN
+         ใช้ Permission เดียวกับ getCenter3
       ========================================= */
 
       (
@@ -1328,12 +1391,17 @@ const getMenuCount = async (payload = {}) => {
 
           WHERE com.formstatus != '3'
 
+          ${permissionSQL}
+
           GROUP BY
             com.id,
             com.reportid,
             com.reply,
             com.risk,
-            com.suggestion,com.generalRisk,com.clinicalRisk,com.generalRiskLevel,
+            com.suggestion,
+            com.generalRisk,
+            com.clinicalRisk,
+            com.generalRiskLevel,
             com.date,
             com.involved,
             com.formstatus,
@@ -1372,7 +1440,6 @@ const getMenuCount = async (payload = {}) => {
       ========================================= */
 
       (
-
         SELECT COUNT(DISTINCT com.id)
 
         FROM ${DB_NAME}.dbo.Complaints com
@@ -1382,52 +1449,41 @@ const getMenuCount = async (payload = {}) => {
 
         WHERE com.formstatus != '3'
 
-
-          /* =========================================
-             ต้องมี Department จริงก่อน
-          ========================================= */
-
           AND EXISTS (
             SELECT 1
-
             FROM OPENJSON(com1.deptrelate) j
-
             WHERE TRY_CAST(j.value AS INT) IS NOT NULL
           )
 
-
-          /* =========================================
-             LEVEL 1
-             Department ตัวเอง
-          ========================================= */
-
-          ${responsePermission}
-
-
-          /* =========================================
-             LEVEL 3+
-             ไม่ต้องเพิ่ม Permission
-          ========================================= */
+          ${permissionSQL}
 
       ) AS response,
 
 
       /* =========================================
          SUMMARY
+         เพิ่ม JOIN เพื่อให้กรองตาม deptrelate ได้
       ========================================= */
 
-      (
-        SELECT COUNT(*)
+   (
+  SELECT COUNT(*)
 
-        FROM ${DB_NAME}.dbo.Complaints com
+  FROM ${DB_NAME}.dbo.Complaints com
 
-        WHERE com.formstatus != '3'
+  LEFT JOIN ${DB_NAME}.dbo.RiskManagement com1
+    ON com1.reportid = com.reportid
 
-          AND com.risk IN (2,3)
+  WHERE com.formstatus != '3'
 
-      ) AS summary
+    AND com.risk IN (2,3,4)
+
+    AND com.deleteAt IS NULL
+
+    ${permissionSQL}
+
+) AS summary
+
     `;
-
 
 
     return await sequelize.query(sql, {

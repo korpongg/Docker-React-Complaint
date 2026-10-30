@@ -530,6 +530,9 @@ const Header = () => {
               ? "Level 2 — Affiliation"
               : String(userData?.level) === "3"
                 ? "Level 3 — ทั้งหมด"
+                 : String(userData?.level) === "4"
+                ? "Level 4 — Viewer"
+             
                 : "Level — ไม่ระบุ"
         }
         size="small"
@@ -545,6 +548,9 @@ const Header = () => {
                 ? "#f0fdf4"
                 : String(userData?.level) === "3"
                   ? "#eff6ff"
+                   : String(userData?.level) === "4"
+                  ? "#f9efffff"
+                 
                   : "#f8fafc",
 
           color:
@@ -554,6 +560,9 @@ const Header = () => {
                 ? "#16a34a"
                 : String(userData?.level) === "3"
                   ? "#2563eb"
+                   : String(userData?.level) === "4"
+                  ? "#9c25ebff"
+                  
                   : "#64748b",
 
           border:
@@ -563,6 +572,9 @@ const Header = () => {
                 ? "1px solid #86efac"
                 : String(userData?.level) === "3"
                   ? "1px solid #93c5fd"
+                   : String(userData?.level) === "4"
+                  ? "1px solid #cd93fdff"
+                 
                   : "1px solid #cbd5e1",
         }}
       />
@@ -584,6 +596,9 @@ const Header = () => {
           ? "เห็นข้อมูลภายใน Affiliation ของคุณ"
           : String(userData?.level) === "3"
             ? "สามารถเห็นข้อมูลทั้งหมด"
+             : String(userData?.level) === "4"
+            ? "ดูข้อมูลได้อย่างเดียว"
+           
             : "ไม่พบข้อมูลระดับการเข้าถึง"}
     </Typography>
   </Box>

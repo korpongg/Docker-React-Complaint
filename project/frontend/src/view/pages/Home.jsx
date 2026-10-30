@@ -38,6 +38,7 @@ const Home = () => {
   // =========================
   // REQUEST COUNT
   // =========================
+  
   useEffect(() => {
     if (!userData?.userid) return;
 
@@ -46,6 +47,7 @@ const Home = () => {
       createby: userData.userid,
 dep: userData.dep,
       // Permission
+          userID:userData?.userid,
       userDepID: userData.DepID,
       userAffID: userData.AffID,
       userLevel: userData.level,
@@ -66,7 +68,7 @@ dep: userData.dep,
         border: "#7F1D1D",
         iconColor: "#DC2626",
         path: "/complaints",
-        show: true,
+        show: userData?.level != "4",
         count: menuCount?.complaint ?? 0,
       },
       {
@@ -92,7 +94,8 @@ dep: userData.dep,
         border: "#075985",
         iconColor: "#0284C7",
         path: "/complaintresponse",
-        show: true,
+         show:
+           userData?.role === "2" ||userData?.level === "3" ||  userData?.level === "2" ||  userData?.level === "4",
         badge: "หน่วยงาน",
         badgeColor: "#0284C7",
         count: menuCount?.response ?? 0,
@@ -107,7 +110,7 @@ dep: userData.dep,
         iconColor: "#16A34A",
         path: "/summarycomplaint",
         show:
-           userData?.role === "2" ||userData?.role === "3" ||  userData?.level === "2",
+           userData?.role === "2" ||userData?.role === "3" ||  userData?.level === "2" ||  userData?.level === "4",
         badge: "ผู้บริหาร",
         badgeColor: "#16A34A",
         count: menuCount?.summary ?? 0,
